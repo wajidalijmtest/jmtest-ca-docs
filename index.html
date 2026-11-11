@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>JMtest integration docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --yellow:#FFE828; --on-yellow:#151515;
+  --bg:#FFFFFF; --panel:#F6F6F3; --ink:#151515; --muted:#5E6166; --line:#E2E2DC;
+  --sans:"Barlow", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.55}
+a{color:inherit}
+.page{max-width:1040px;margin:0 auto;padding:0 24px 96px}
+
+.topbar{display:flex;justify-content:space-between;align-items:center;padding:20px 0;border-bottom:1px solid var(--line)}
+.logo{font-weight:700;font-size:18px;text-decoration:none;display:flex;align-items:center;gap:10px}
+.logo b{background:var(--yellow);color:var(--on-yellow);padding:2px 10px}
+.topbar nav{display:flex;gap:24px;font-size:15px}
+.topbar nav a{text-decoration:none;color:var(--muted)}
+.topbar nav a:hover{color:var(--ink)}
+
+.hero{display:grid;grid-template-columns:1.3fr 1fr;gap:48px;align-items:end;padding:64px 0 48px;border-bottom:2px solid var(--ink)}
+.hero h1{font-size:52px;line-height:1.05;font-weight:700;margin:0;letter-spacing:-.015em}
+.hero h1 mark{background:linear-gradient(transparent 58%, var(--yellow) 58%);color:inherit;padding:0 2px}
+.hero p{color:var(--muted);margin:16px 0 0;max-width:52ch}
+.systems{border-left:8px solid var(--yellow);padding:4px 0 4px 20px}
+.systems h2{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 10px;letter-spacing:.04em;text-transform:uppercase}
+.systems dl{margin:0;display:grid;grid-template-columns:auto 1fr;gap:6px 16px;font-size:16px}
+.systems dt{font-weight:600}
+.systems dd{margin:0;color:var(--muted)}
+
+.toolbar{display:flex;justify-content:space-between;align-items:center;gap:16px;margin:40px 0 20px;flex-wrap:wrap}
+.toolbar h2{font-size:28px;font-weight:700;margin:0}
+.search{position:relative;flex:0 1 320px}
+.search input{width:100%;font:inherit;font-size:16px;padding:9px 12px;border:1.5px solid var(--line);background:var(--bg);color:var(--ink)}
+.search input:focus-visible{outline:3px solid var(--yellow);outline-offset:0;border-color:var(--ink)}
+
+.docs{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:16px;list-style:none;margin:0;padding:0}
+.doc a{display:flex;flex-direction:column;height:100%;text-decoration:none;border:1.5px solid var(--line);padding:22px 22px 18px;background:var(--bg);transition:border-color .15s, transform .15s}
+.doc a:hover{border-color:var(--ink);transform:translateY(-2px)}
+.doc a:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.doc .area{font-size:13px;font-weight:600;color:var(--muted);margin-bottom:10px}
+.doc .area span{background:var(--yellow);color:var(--on-yellow);padding:1px 8px;margin-right:8px}
+.doc h3{font-size:22px;font-weight:700;margin:0 0 8px;line-height:1.2}
+.doc p{margin:0 0 18px;color:var(--muted);font-size:16px}
+.doc .meta{margin-top:auto;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding-top:12px;font-size:14px;color:var(--muted)}
+.doc .meta code{font-family:var(--mono);font-size:12.5px}
+.doc .go{font-weight:600;color:var(--ink)}
+.doc.soon a{border-style:dashed;pointer-events:none;background:var(--panel)}
+.doc.soon h3{color:var(--muted)}
+.empty{color:var(--muted);padding:24px 0;display:none}
+
+.notes{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-top:56px}
+.note{background:var(--panel);padding:20px}
+.note h3{font-size:17px;font-weight:700;margin:0 0 6px}
+.note p{margin:0;font-size:15px;color:var(--muted)}
+.note code{font-family:var(--mono);font-size:13px;color:var(--ink)}
+
+footer{margin-top:64px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:14px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+
+@media (max-width:760px){
+  .hero{grid-template-columns:1fr;gap:28px;padding:40px 0 32px}
+  .hero h1{font-size:38px}
+  .notes{grid-template-columns:1fr}
+  .topbar nav{display:none}
+}
+@media (prefers-reduced-motion: reduce){.doc a{transition:none}.doc a:hover{transform:none}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<div class="topbar">
+  <a class="logo" href="index.html"><b>JMtest</b>Integration docs</a>
+  <nav aria-label="Sections">
+    <a href="#docs">Flows</a>
+    <a href="#notes">Conventions</a>
+  </nav>
+</div>
+
+<section class="hero">
+  <div>
+    <h1>How the storefront talks to <mark>Business Central</mark></h1>
+    <p>Integration flows for the JMtest storefront: which API calls run, in what order, with real request and response examples.</p>
+  </div>
+  <div class="systems">
+    <h2>Systems</h2>
+    <dl>
+      <dt>Storefront</dt><dd>Next.js on Azure</dd>
+      <dt>ERP</dt><dd>Business Central, API v2.0</dd>
+      <dt>Auth</dt><dd>Microsoft Entra ID, client credentials</dd>
+    </dl>
+  </div>
+</section>
+
+<div class="toolbar" id="docs">
+  <h2>Flows</h2>
+  <label class="search">
+    <span style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Search flows</span>
+    <input type="search" id="q" placeholder="Search flows" autocomplete="off">
+  </label>
+</div>
+
+<ul class="docs" id="list"></ul>
+<p class="empty" id="empty">No flows match that search.</p>
+
+<section class="notes" id="notes" aria-label="Conventions">
+  <div class="note">
+    <h3>Base URL</h3>
+    <p>Every page writes the Business Central base as <code>{base}</code>. Replace <code>{tenantId}</code> and <code>{environment}</code> with your values.</p>
+  </div>
+  <div class="note">
+    <h3>Sandbox first</h3>
+    <p>Run every flow against a Sandbox environment before Production. Example IDs and amounts are illustrative.</p>
+  </div>
+  <div class="note">
+    <h3>Secrets</h3>
+    <p>Client secrets live in Azure Key Vault in the JMTS tenant. They never appear in these pages or in code.</p>
+  </div>
+</section>
+
+<footer>
+  <span>JMtest integration docs · internal</span>
+  <span id="count"></span>
+</footer>
+</div>
+
+<script>
+/* To add a page: drop the .html file next to this one and add an entry here.
+   Set status: "soon" for a placeholder card with no link. */
+const docs = [
+  {
+    title: "Sales quote creation",
+    area: "Sales",
+    system: "Business Central",
+    description: "Create a quote from the storefront, add lines, send it, and convert it to a sales order. 9 calls with a flow diagram and response examples.",
+    href: "sales-quote-creation-flow.html",
+    updated: "2026-11-11",
+    status: "live"
+  }
+];
+
+const list = document.getElementById("list");
+const empty = document.getElementById("empty");
+const fmt = d => new Date(d + "T00:00:00").toLocaleDateString("en-CA", { year: "numeric", month: "short", day: "numeric" });
+
+function render(q = "") {
+  const term = q.trim().toLowerCase();
+  const shown = docs.filter(d => !term || [d.title, d.area, d.system, d.description].join(" ").toLowerCase().includes(term));
+  list.replaceChildren();
+  shown.forEach(d => {
+    const li = document.createElement("li");
+    li.className = "doc" + (d.status === "soon" ? " soon" : "");
+    const a = document.createElement("a");
+    if (d.status !== "soon") a.href = d.href; else a.setAttribute("aria-disabled", "true");
+
+    const area = document.createElement("div");
+    area.className = "area";
+    const tag = document.createElement("span");
+    tag.textContent = d.area;
+    area.append(tag, document.createTextNode(d.system));
+
+    const h = document.createElement("h3");
+    h.textContent = d.title;
+    const p = document.createElement("p");
+    p.textContent = d.description;
+
+    const meta = document.createElement("div");
+    meta.className = "meta";
+    const left = document.createElement("span");
+    left.textContent = d.status === "soon" ? "Coming soon" : "Updated " + fmt(d.updated);
+    const right = document.createElement("span");
+    right.className = "go";
+    right.textContent = d.status === "soon" ? "" : "Open →";
+    meta.append(left, right);
+
+    a.append(area, h, p, meta);
+    li.append(a);
+    list.append(li);
+  });
+  empty.style.display = shown.length ? "none" : "block";
+  const live = docs.filter(d => d.status !== "soon").length;
+  document.getElementById("count").textContent = live + (live === 1 ? " flow documented" : " flows documented");
+}
+
+document.getElementById("q").addEventListener("input", e => render(e.target.value));
+render();
+</script>
+</body>
+</html>

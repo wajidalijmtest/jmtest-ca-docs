@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sales quote creation in Business Central · JMtest</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --yellow:#FFE828; --on-yellow:#151515;
+  --bg:#FFFFFF; --panel:#F6F6F3; --ink:#151515; --muted:#5E6166; --line:#E2E2DC;
+  --green:#1B7F3B; --red:#B42318;
+  --sans:"Barlow", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.55}
+.page{max-width:920px;margin:0 auto;padding:48px 24px 96px}
+
+header{border-left:8px solid var(--yellow);padding:4px 0 4px 24px;margin-bottom:40px}
+.brand{font-weight:700;font-size:15px;letter-spacing:.02em;margin:0 0 10px}
+.brand b{background:var(--yellow);color:var(--on-yellow);padding:2px 8px;margin-right:8px}
+h1{font-size:40px;line-height:1.1;font-weight:700;margin:0;letter-spacing:-.01em}
+.lede{color:var(--muted);margin:12px 0 0;max-width:60ch}
+
+.base{display:flex;gap:12px;align-items:center;background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin-bottom:12px}
+.base .k{font-size:14px;color:var(--muted);white-space:nowrap}
+.base code{font-family:var(--mono);font-size:14px;overflow-wrap:anywhere;flex:1}
+.auth{font-size:15px;color:var(--muted);margin:0 0 48px}
+.auth code{font-family:var(--mono);font-size:14px;color:var(--ink)}
+button{font:inherit}
+.btn{font-size:14px;font-weight:500;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:5px 12px;cursor:pointer}
+.btn:hover{border-color:var(--ink)}
+.btn:focus-visible, summary:focus-visible, .dnode:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin:0 0 20px}
+.section-head h2{font-size:28px;font-weight:700;margin:0}
+.section-head p{margin:0;color:var(--muted);font-size:15px}
+
+.diagram{border:1px solid var(--line);padding:24px 16px 16px;margin-bottom:12px}
+.diagram svg{display:block;width:100%;height:auto;max-width:760px;margin:0 auto}
+.dnode{cursor:pointer}
+.dnode:hover rect.box{stroke-width:2.5}
+.legend{display:flex;flex-wrap:wrap;gap:8px 24px;font-size:14px;color:var(--muted);margin:0 0 56px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:22px;height:14px;border:1.5px solid var(--ink);display:inline-block}
+.sw.dash{border-style:dashed;border-color:var(--muted)}
+.sw.yel{background:var(--yellow);border-color:var(--ink)}
+
+.phase{margin:0 0 8px}
+.phase-head{display:flex;align-items:baseline;gap:14px;margin:0 0 6px}
+.phase-head h3{font-size:22px;font-weight:700;margin:0}
+.phase-head p{margin:0;color:var(--muted);font-size:15px}
+
+.flow{position:relative;margin:0 0 40px;padding-left:0;list-style:none}
+.flow::before{content:"";position:absolute;left:21px;top:28px;bottom:28px;width:2px;background:var(--line)}
+
+.node{position:relative;display:grid;grid-template-columns:44px 1fr;gap:16px;padding:10px 0;scroll-margin-top:24px}
+.dot{width:44px;height:44px;border-radius:50%;background:var(--yellow);color:var(--on-yellow);display:grid;place-content:center;font-weight:700;font-size:17px;position:relative;z-index:1}
+.dot.opt{background:var(--bg);color:var(--ink);border:2px dashed var(--muted)}
+.dot.dec{background:var(--bg);border:2px solid var(--ink);border-radius:6px;width:30px;height:30px;transform:rotate(45deg);margin:7px}
+
+details.card{border:1px solid var(--line);background:var(--bg)}
+details.card[open]{border-color:var(--ink)}
+details.card.opt{border-style:dashed}
+summary{list-style:none;cursor:pointer;padding:12px 16px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center}
+summary::-webkit-details-marker{display:none}
+.m{font-family:var(--mono);font-size:12.5px;font-weight:500;padding:2px 8px;border:1.5px solid var(--ink);text-align:center;min-width:64px}
+.m.POST{background:var(--ink);color:var(--bg)}
+.m.DELETE{border-color:var(--red);color:var(--red)}
+.t{font-weight:600;font-size:18px}
+.chev{width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin:0 4px 4px 0;transition:transform .15s}
+details[open] .chev{transform:rotate(-135deg);margin-bottom:-2px}
+.ep{grid-column:2 / 4;font-family:var(--mono);font-size:13.5px;color:var(--muted);overflow-wrap:anywhere}
+.tag{font-size:13px;font-weight:600;background:var(--yellow);color:var(--on-yellow);padding:1px 8px;margin-left:8px;vertical-align:2px}
+.tag.quiet{background:none;color:var(--muted);border:1px solid var(--line);font-weight:500}
+
+.detail{padding:4px 16px 16px;display:grid;gap:14px}
+.detail h4{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.status{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--green);border:1px solid var(--green);padding:0 6px}
+.status.err{color:var(--red);border-color:var(--red)}
+.detail pre{margin:0;font-family:var(--mono);font-size:13px;line-height:1.55;background:var(--panel);border:1px solid var(--line);padding:10px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.detail p{margin:0;font-size:16px;max-width:64ch}
+.detail p code,.branch code{font-family:var(--mono);font-size:14px;background:var(--panel);padding:0 4px}
+
+.decision .q{font-weight:700;font-size:18px;padding-top:9px}
+.branches{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:10px}
+.branch{border:1px solid var(--line);padding:10px 14px;font-size:15px}
+.branch b{display:block;font-size:13px;color:var(--muted);font-weight:600;margin-bottom:2px}
+.branch.go{border-left:4px solid var(--yellow)}
+
+.end{display:grid;grid-template-columns:44px 1fr;gap:16px;padding:10px 0}
+.end .dot{background:var(--ink);color:var(--bg)}
+.end p{margin:0;padding-top:9px;font-weight:600}
+
+footer{border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:14px}
+
+@media (max-width:640px){
+  h1{font-size:30px}
+  .base{flex-direction:column;align-items:flex-start}
+  .branches{grid-template-columns:1fr}
+  summary{grid-template-columns:auto 1fr}
+  .chev{display:none}
+  .ep{grid-column:1 / 3}
+  .section-head{flex-direction:column;align-items:flex-start}
+}
+@media (prefers-reduced-motion: reduce){.chev{transition:none}}
+@media print{.btn{display:none} details.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<header>
+  <p class="brand"><b>JMtest</b>Storefront × Business Central</p>
+  <h1>Sales quote creation in Business Central</h1>
+  <p class="lede">The order of API calls the storefront makes to create a quote, send it, and turn it into a sales order. Click any box in the diagram to jump to that call's request and response.</p>
+</header>
+
+<div class="base">
+  <span class="k">Base URL</span>
+  <code id="baseUrl">https://api.businesscentral.dynamics.com/v2.0/{tenantId}/{environment}/api/v2.0</code>
+  <button class="btn" type="button" data-copy="baseUrl">Copy</button>
+</div>
+<p class="auth">Written as <code>{base}</code> below. Every call after step 1 sends <code>Authorization: Bearer {access_token}</code>; calls with a body also send <code>Content-Type: application/json</code>.</p>
+
+<!-- ============ FLOW DIAGRAM ============ -->
+<div class="section-head"><h2>Flow diagram</h2><p>9 calls, 2 decisions</p></div>
+<div class="diagram">
+<svg viewBox="0 0 760 1000" role="img" aria-labelledby="dgTitle dgDesc" font-family="Barlow, Segoe UI, sans-serif">
+  <title id="dgTitle">Business Central sales quote API flow</title>
+  <desc id="dgDesc">Get token, get company, find customer; if not found create customer; create quote header; add lines, rolling back on failure; read totals; optionally update; send quote; if accepted convert to sales order, otherwise let it expire or delete it.</desc>
+  <defs>
+    <marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#151515"/>
+    </marker>
+  </defs>
+
+  <!-- connectors -->
+  <g fill="none" stroke="#151515" stroke-width="1.5">
+    <path d="M270 68V100" marker-end="url(#arr)"/>
+    <path d="M270 156V188" marker-end="url(#arr)"/>
+    <path d="M270 244V280" marker-end="url(#arr)"/>
+    <path d="M270 344V380" marker-end="url(#arr)"/>
+    <path d="M360 312H510" marker-end="url(#arr)"/>
+    <path d="M620 340V408H440" marker-end="url(#arr)"/>
+    <path d="M270 436V468" marker-end="url(#arr)"/>
+    <path d="M440 496H510" marker-end="url(#arr)" stroke-dasharray="5 4"/>
+    <path d="M270 524V556" marker-end="url(#arr)"/>
+    <path d="M270 612V644" marker-end="url(#arr)"/>
+    <path d="M270 700V732" marker-end="url(#arr)"/>
+    <path d="M270 788V824" marker-end="url(#arr)"/>
+    <path d="M270 888V924" marker-end="url(#arr)"/>
+    <path d="M360 856H510" marker-end="url(#arr)"/>
+  </g>
+
+  <!-- edge labels -->
+  <g font-size="13" fill="#5E6166" font-weight="600">
+    <text x="282" y="366">yes</text>
+    <text x="435" y="302" text-anchor="middle">no</text>
+    <text x="475" y="486" text-anchor="middle">fails</text>
+    <text x="282" y="910">yes</text>
+    <text x="435" y="846" text-anchor="middle">no</text>
+  </g>
+
+  <!-- main path boxes: x=100..440 -->
+  <g class="dnode" data-go="s1" tabindex="0" role="link" aria-label="Step 1, get access token">
+    <rect class="box" x="100" y="12" width="340" height="56" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+    <rect x="112" y="26" width="28" height="28" fill="#FFE828"/>
+    <text x="126" y="45" text-anchor="middle" font-weight="700" font-size="15" fill="#151515">1</text>
+    <text x="152" y="36" font-size="15" fill="#151515"><tspan font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">POST</tspan><tspan font-weight="600"> Get access token</tspan></text>
+    <text x="152" y="56" font-family="JetBrains Mono, monospace" font-size="11" fill="#5E6166">/oauth2/v2.0/token</text>
+  </g>
+
+  <g class="dnode" data-go="s2" tabindex="0" role="link" aria-label="Step 2, get company ID">
+    <rect class="box" x="100" y="100" width="340" height="56" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+    <rect x="112" y="114" width="28" height="28" fill="#FFE828"/>
+    <text x="126" y="133" text-anchor="middle" font-weight="700" font-size="15" fill="#151515">2</text>
+    <text x="152" y="124" font-size="15" fill="#151515"><tspan font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">GET</tspan><tspan font-weight="600"> Get company ID</tspan></text>
+    <text x="152" y="144" font-family="JetBrains Mono, monospace" font-size="11" fill="#5E6166">/companies</text>
+  </g>
+
+  <g class="dnode" data-go="s3" tabindex="0" role="link" aria-label="Step 3, find the customer">
+    <rect class="box" x="100" y="188" width="340" height="56" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+    <rect x="112" y="202" width="28" height="28" fill="#FFE828"/>
+    <text x="126" y="221" text-anchor="middle" font-weight="700" font-size="15" fill="#151515">3</text>
+    <text x="152" y="212" font-size="15" fill="#151515"><tspan font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">GET</tspan><tspan font-weight="600"> Find the customer</tspan></text>
+    <text x="152" y="232" font-family="JetBrains Mono, monospace" font-size="11" fill="#5E6166">/customers?$filter=number eq '…'</text>
+  </g>
+
+  <!-- decision 1 -->
+  <polygon points="180,312 270,280 360,312 270,344" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="270" y="317" text-anchor="middle" font-size="15" font-weight="600" fill="#151515">Customer found?</text>
+
+  <!-- 3b -->
+  <g class="dnode" data-go="s3b" tabindex="0" role="link" aria-label="Step 3b, create customer">
+    <rect class="box" x="510" y="284" width="220" height="56" fill="#fff" stroke="#5E6166" stroke-width="1.5" stroke-dasharray="6 4"/>
+    <rect x="522" y="298" width="28" height="28" fill="#fff" stroke="#5E6166" stroke-dasharray="3 2"/>
+    <text x="536" y="317" text-anchor="middle" font-weight="700" font-size="13" fill="#151515">3b</text>
+    <text x="562" y="308" font-size="15" fill="#151515"><tspan font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">POST</tspan><tspan font-weight="600"> Create customer</tspan></text>
+    <text x="562" y="328" font-family="JetBrains Mono, monospace" font-size="11" fill="#5E6166">/customers</text>
+  </g>
+
+  <g class="dnode" data-go="s4" tabindex="0" role="link" aria-label="Step 4, create quote header">
+    <rect class="box" x="100" y="380" width="340" height="56" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+    <rect x="112" y="394" width="28" height="28" fill="#FFE828"/>
+    <text x="126" y="413" text-anchor="middle" font-weight="700" font-size="15" fill="#151515">4</text>
+    <text x="152" y="404" font-size="15" fill="#151515"><tspan font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">POST</tspan><tspan font-weight="600"> Create quote header</tspan></text>
+    <text x="152" y="424" font-family="JetBrains Mono, monospace" font-size="11" fill="#5E6166">/salesQuotes</text>
+  </g>
+
+  <g class="dnode" data-go="s5" tabindex="0" role="link" aria-label="Step 5, add quote lines">
+    <rect class="box" x="100" y="468" width="340" height="56" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+    <rect x="112" y="482" width="28" height="28" fill="#FFE828"/>
+    <text x="126" y="501" text-anchor="middle" font-weight="700" font-size="15" fill="#151515">5</text>
+    <text x="152" y="492" font-size="15" fill="#151515"><tspan font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">POST</tspan><tspan font-weight="600"> Add each quote line</tspan></text>
+    <text x="152" y="512" font-family="JetBrains Mono, monospace" font-size="11" fill="#5E6166">/salesQuotes(id)/salesQuoteLines</text>
+  </g>
+
+  <!-- rollback -->
+  <g class="dnode" data-go="sR" tabindex="0" role="link" aria-label="Roll back the quote">
+    <rect class="box" x="510" y="468" width="220" height="56" fill="#fff" stroke="#B42318" stroke-width="1.5" stroke-dasharray="6 4"/>
+    <rect x="522" y="482" width="28" height="28" fill="#fff" stroke="#B42318" stroke-dasharray="3 2"/>
+    <text x="536" y="501" text-anchor="middle" font-weight="700" font-size="14" fill="#B42318">R</text>
+    <text x="562" y="492" font-size="15" fill="#151515"><tspan font-family="JetBrains Mono, monospace" font-weight="700" font-size="12" fill="#B42318">DELETE</tspan><tspan font-weight="600"> Roll back</tspan></text>
+    <text x="562" y="512" font-family="JetBrains Mono, monospace" font-size="11" fill="#5E6166">/salesQuotes(id)</text>
+  </g>
+
+  <g class="dnode" data-go="s6" tabindex="0" role="link" aria-label="Step 6, read quote with totals">
+    <rect class="box" x="100" y="556" width="340" height="56" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+    <rect x="112" y="570" width="28" height="28" fill="#FFE828"/>
+    <text x="126" y="589" text-anchor="middle" font-weight="700" font-size="15" fill="#151515">6</text>
+    <text x="152" y="580" font-size="15" fill="#151515"><tspan font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">GET</tspan><tspan font-weight="600"> Read quote with totals</tspan></text>
+    <text x="152" y="600" font-family="JetBrains Mono, monospace" font-size="11" fill="#5E6166">/salesQuotes(id)?$expand=salesQuoteLines</text>
+  </g>
+
+  <g class="dnode" data-go="s7" tabindex="0" role="link" aria-label="Step 7, update quote, optional">
+    <rect class="box" x="100" y="644" width="340" height="56" fill="#fff" stroke="#5E6166" stroke-width="1.5" stroke-dasharray="6 4"/>
+    <rect x="112" y="658" width="28" height="28" fill="#fff" stroke="#5E6166" stroke-dasharray="3 2"/>
+    <text x="126" y="677" text-anchor="middle" font-weight="700" font-size="15" fill="#151515">7</text>
+    <text x="152" y="668" font-size="15" fill="#151515"><tspan font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">PATCH</tspan><tspan font-weight="600"> Update quote (optional)</tspan></text>
+    <text x="152" y="688" font-family="JetBrains Mono, monospace" font-size="11" fill="#5E6166">/salesQuotes(id) + If-Match</text>
+  </g>
+
+  <g class="dnode" data-go="s8" tabindex="0" role="link" aria-label="Step 8, send quote">
+    <rect class="box" x="100" y="732" width="340" height="56" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+    <rect x="112" y="746" width="28" height="28" fill="#FFE828"/>
+    <text x="126" y="765" text-anchor="middle" font-weight="700" font-size="15" fill="#151515">8</text>
+    <text x="152" y="756" font-size="15" fill="#151515"><tspan font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">POST</tspan><tspan font-weight="600"> Send quote to customer</tspan></text>
+    <text x="152" y="776" font-family="JetBrains Mono, monospace" font-size="11" fill="#5E6166">/salesQuotes(id)/Microsoft.NAV.send</text>
+  </g>
+
+  <!-- decision 2 -->
+  <polygon points="180,856 270,824 360,856 270,888" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="270" y="861" text-anchor="middle" font-size="15" font-weight="600" fill="#151515">Customer accepts?</text>
+
+  <!-- expire -->
+  <g>
+    <rect x="510" y="828" width="220" height="56" fill="#fff" stroke="#5E6166" stroke-width="1.5" stroke-dasharray="6 4"/>
+    <text x="620" y="852" text-anchor="middle" font-size="15" font-weight="600" fill="#151515">Expire, or DELETE</text>
+    <text x="620" y="872" text-anchor="middle" font-family="JetBrains Mono, monospace" font-size="11" fill="#5E6166">after validUntilDate</text>
+  </g>
+
+  <!-- step 9: the outcome, filled yellow -->
+  <g class="dnode" data-go="s9" tabindex="0" role="link" aria-label="Step 9, convert to sales order">
+    <rect class="box" x="100" y="924" width="340" height="56" fill="#FFE828" stroke="#151515" stroke-width="1.5"/>
+    <rect x="112" y="938" width="28" height="28" fill="#151515"/>
+    <text x="126" y="957" text-anchor="middle" font-weight="700" font-size="15" fill="#FFE828">9</text>
+    <text x="152" y="948" font-size="15" fill="#151515"><tspan font-family="JetBrains Mono, monospace" font-weight="700" font-size="12">POST</tspan><tspan font-weight="600"> Convert to sales order</tspan></text>
+    <text x="152" y="968" font-family="JetBrains Mono, monospace" font-size="11" fill="#151515">/salesQuotes(id)/Microsoft.NAV.makeOrder</text>
+  </g>
+</svg>
+</div>
+<div class="legend">
+  <span><i class="sw"></i>Main path, every quote</span>
+  <span><i class="sw dash"></i>Only when needed</span>
+  <span><i class="sw yel"></i>Outcome: sales order</span>
+</div>
+
+<!-- ============ STEP DETAILS ============ -->
+<div class="section-head"><h2>Step by step</h2><button class="btn" type="button" id="expand">Open all steps</button></div>
+
+<section class="phase" aria-labelledby="p1">
+  <div class="phase-head"><h3 id="p1">Connect</h3><p>Once per session</p></div>
+  <ol class="flow">
+    <li class="node" id="s1">
+      <div class="dot">1</div>
+      <details class="card">
+        <summary><span class="m POST">POST</span><span class="t">Get access token<span class="tag quiet">reuse ~60 min</span></span><span class="chev" aria-hidden="true"></span>
+          <span class="ep">https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token</span></summary>
+        <div class="detail">
+          <div><h4>Headers</h4><pre>Content-Type: application/x-www-form-urlencoded</pre></div>
+          <div><h4>Body</h4><pre>grant_type=client_credentials
+&amp;client_id={clientId}
+&amp;client_secret={clientSecret}
+&amp;scope=https://api.businesscentral.dynamics.com/.default</pre></div>
+          <div><h4>Response <span class="status">200 OK</span></h4><pre>{
+  "token_type": "Bearer",
+  "expires_in": 3599,
+  "ext_expires_in": 3599,
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJSUzI1NiIs..."
+}</pre></div>
+          <p>Cache <code>access_token</code> and request a new one shortly before <code>expires_in</code> runs out.</p>
+        </div>
+      </details>
+    </li>
+    <li class="node" id="s2">
+      <div class="dot">2</div>
+      <details class="card">
+        <summary><span class="m GET">GET</span><span class="t">Get company ID<span class="tag quiet">once, then store</span></span><span class="chev" aria-hidden="true"></span>
+          <span class="ep">{base}/companies</span></summary>
+        <div class="detail">
+          <div><h4>Headers</h4><pre>Authorization: Bearer {access_token}</pre></div>
+          <div><h4>Response <span class="status">200 OK</span></h4><pre>{
+  "@odata.context": "{base}/$metadata#companies",
+  "value": [
+    {
+      "id": "8e3c1a52-6f1d-ef11-9f88-6045bdc8c1a7",
+      "systemVersion": "26.0.30643.32541",
+      "name": "CRONUS USA, Inc.",
+      "displayName": "CRONUS USA, Inc.",
+      "businessProfileId": ""
+    }
+  ]
+}</pre></div>
+          <p><code>id</code> is the <code>companyId</code> used in every URL below. It does not change, so keep it in configuration.</p>
+        </div>
+      </details>
+    </li>
+  </ol>
+</section>
+
+<section class="phase" aria-labelledby="p2">
+  <div class="phase-head"><h3 id="p2">Create the quote</h3><p>Runs together when the customer requests a quote</p></div>
+  <ol class="flow">
+    <li class="node" id="s3">
+      <div class="dot">3</div>
+      <details class="card">
+        <summary><span class="m GET">GET</span><span class="t">Find the customer</span><span class="chev" aria-hidden="true"></span>
+          <span class="ep">{base}/companies({companyId})/customers?$filter=number eq 'C00010'</span></summary>
+        <div class="detail">
+          <div><h4>Headers</h4><pre>Authorization: Bearer {access_token}</pre></div>
+          <div><h4>Response, customer found <span class="status">200 OK</span></h4><pre>{
+  "value": [
+    {
+      "@odata.etag": "W/\"JzE5OzEyMzQ1Njc4OTAxMjM0NTY3ODkwMTsn\"",
+      "id": "5d115c9c-44e3-ea11-bb43-000d3a2feca1",
+      "number": "C00010",
+      "displayName": "Acme Ltd",
+      "type": "Company",
+      "email": "buyer@acme.com",
+      "currencyCode": "CAD",
+      "blocked": " ",
+      "lastModifiedDateTime": "2026-11-02T15:20:11.83Z"
+    }
+  ]
+}</pre></div>
+          <div><h4>Response, not found <span class="status">200 OK</span></h4><pre>{ "value": [] }</pre></div>
+          <p>You can also filter by email: <code>$filter=email eq 'buyer@acme.com'</code>.</p>
+        </div>
+      </details>
+    </li>
+
+    <li class="node decision">
+      <div class="dot dec" aria-hidden="true"></div>
+      <div>
+        <div class="q">Customer found?</div>
+        <div class="branches">
+          <div class="branch go"><b>Yes</b>Use the customer number and go to step 4.</div>
+          <div class="branch"><b>No</b>Create the customer first (3b), then go to step 4.</div>
+        </div>
+      </div>
+    </li>
+
+    <li class="node" id="s3b">
+      <div class="dot opt">3b</div>
+      <details class="card opt">
+        <summary><span class="m POST">POST</span><span class="t">Create customer<span class="tag quiet">only if not found</span></span><span class="chev" aria-hidden="true"></span>
+          <span class="ep">{base}/companies({companyId})/customers</span></summary>
+        <div class="detail">
+          <div><h4>Headers</h4><pre>Authorization: Bearer {access_token}
+Content-Type: application/json</pre></div>
+          <div><h4>Body</h4><pre>{
+  "displayName": "Acme Ltd",
+  "email": "buyer@acme.com",
+  "currencyCode": "CAD"
+}</pre></div>
+          <div><h4>Response <span class="status">201 Created</span></h4><pre>{
+  "@odata.etag": "W/\"JzE5Ozk4NzY1NDMyMTA5ODc2NTQzMjE7Jw==\"",
+  "id": "7a2f8e10-9c4b-ef11-9f88-6045bdc8c1a7",
+  "number": "C00011",
+  "displayName": "Acme Ltd",
+  "type": "Company",
+  "email": "buyer@acme.com",
+  "currencyCode": "CAD",
+  "paymentTermsId": "0b6f3f8e-...",
+  "taxAreaDisplayName": "ONTARIO",
+  "lastModifiedDateTime": "2026-11-11T16:04:52.12Z"
+}</pre></div>
+          <p>Business Central assigns the next customer number and applies the customer template for posting groups, payment terms and tax area.</p>
+        </div>
+      </details>
+    </li>
+
+    <li class="node" id="s4">
+      <div class="dot">4</div>
+      <details class="card">
+        <summary><span class="m POST">POST</span><span class="t">Create quote header</span><span class="chev" aria-hidden="true"></span>
+          <span class="ep">{base}/companies({companyId})/salesQuotes</span></summary>
+        <div class="detail">
+          <div><h4>Headers</h4><pre>Authorization: Bearer {access_token}
+Content-Type: application/json</pre></div>
+          <div><h4>Body</h4><pre>{
+  "customerNumber": "C00010",
+  "externalDocumentNumber": "WEB-Q-2045",
+  "documentDate": "2026-11-11",
+  "validUntilDate": "2026-12-11",
+  "currencyCode": "CAD",
+  "email": "buyer@acme.com"
+}</pre></div>
+          <div><h4>Response <span class="status">201 Created</span></h4><pre>{
+  "@odata.etag": "W/\"JzIwOzE0NTY3ODkwMTIzNDU2Nzg5MDE7Jw==\"",
+  "id": "c3b1d9f4-1a6e-ef11-9f88-6045bdc8c1a7",
+  "number": "SQ-1019",
+  "externalDocumentNumber": "WEB-Q-2045",
+  "documentDate": "2026-11-11",
+  "dueDate": "2026-12-11",
+  "customerId": "5d115c9c-44e3-ea11-bb43-000d3a2feca1",
+  "customerNumber": "C00010",
+  "customerName": "Acme Ltd",
+  "currencyCode": "CAD",
+  "salesperson": "JR",
+  "discountAmount": 0,
+  "totalAmountExcludingTax": 0,
+  "totalTaxAmount": 0,
+  "totalAmountIncludingTax": 0,
+  "status": "Draft",
+  "validUntilDate": "2026-12-11",
+  "email": "buyer@acme.com",
+  "lastModifiedDateTime": "2026-11-11T16:05:03.47Z"
+}</pre></div>
+          <div><h4>Error example <span class="status err">400 Bad Request</span></h4><pre>{
+  "error": {
+    "code": "Internal_RecordNotFound",
+    "message": "The Customer does not exist. Identification fields and values: No.='C99999'"
+  }
+}</pre></div>
+          <p>Save <code>id</code> as the <code>quoteId</code>. Totals stay at 0 until lines are added.</p>
+        </div>
+      </details>
+    </li>
+
+    <li class="node" id="s5">
+      <div class="dot">5</div>
+      <details class="card">
+        <summary><span class="m POST">POST</span><span class="t">Add quote line<span class="tag">repeat per product</span></span><span class="chev" aria-hidden="true"></span>
+          <span class="ep">{base}/companies({companyId})/salesQuotes({quoteId})/salesQuoteLines</span></summary>
+        <div class="detail">
+          <div><h4>Headers</h4><pre>Authorization: Bearer {access_token}
+Content-Type: application/json</pre></div>
+          <div><h4>Body</h4><pre>{
+  "lineType": "Item",
+  "lineObjectNumber": "1000",
+  "quantity": 5,
+  "unitPrice": 129.00,
+  "discountPercent": 0
+}</pre></div>
+          <div><h4>Response <span class="status">201 Created</span></h4><pre>{
+  "@odata.etag": "W/\"JzI0OzExMjIzMzQ0NTU2Njc3ODg5OTAwOyc=\"",
+  "id": "e8a4c2b0-1a6e-ef11-9f88-6045bdc8c1a7",
+  "documentId": "c3b1d9f4-1a6e-ef11-9f88-6045bdc8c1a7",
+  "sequence": 10000,
+  "itemId": "96f2a1c0-8b3d-ea11-bb43-000d3a2feca1",
+  "lineType": "Item",
+  "lineObjectNumber": "1000",
+  "description": "Concrete compression tester",
+  "unitOfMeasureCode": "PCS",
+  "quantity": 5,
+  "unitPrice": 129,
+  "discountPercent": 0,
+  "discountAmount": 0,
+  "amountExcludingTax": 645,
+  "taxCode": "TAXABLE",
+  "taxPercent": 13,
+  "totalTaxAmount": 83.85,
+  "amountIncludingTax": 728.85,
+  "netAmount": 645
+}</pre></div>
+          <p>Leave out <code>unitPrice</code> to let Business Central apply its own price for the customer. Tax values depend on your tax setup.</p>
+        </div>
+      </details>
+    </li>
+
+    <li class="node decision">
+      <div class="dot dec" aria-hidden="true"></div>
+      <div>
+        <div class="q">All lines added?</div>
+        <div class="branches">
+          <div class="branch go"><b>Yes</b>Go to step 6.</div>
+          <div class="branch"><b>A line failed</b>Retry it, or delete the whole quote (R) so no half-built draft is left.</div>
+        </div>
+      </div>
+    </li>
+
+    <li class="node" id="sR">
+      <div class="dot opt">R</div>
+      <details class="card opt">
+        <summary><span class="m DELETE">DELETE</span><span class="t">Roll back the quote<span class="tag quiet">only on failure</span></span><span class="chev" aria-hidden="true"></span>
+          <span class="ep">{base}/companies({companyId})/salesQuotes({quoteId})</span></summary>
+        <div class="detail">
+          <div><h4>Headers</h4><pre>Authorization: Bearer {access_token}
+If-Match: {@odata.etag}</pre></div>
+          <div><h4>Response <span class="status">204 No Content</span></h4><pre>(empty body)</pre></div>
+          <p>The quote and its lines are removed.</p>
+        </div>
+      </details>
+    </li>
+
+    <li class="node" id="s6">
+      <div class="dot">6</div>
+      <details class="card">
+        <summary><span class="m GET">GET</span><span class="t">Read quote with totals</span><span class="chev" aria-hidden="true"></span>
+          <span class="ep">{base}/companies({companyId})/salesQuotes({quoteId})?$expand=salesQuoteLines</span></summary>
+        <div class="detail">
+          <div><h4>Headers</h4><pre>Authorization: Bearer {access_token}</pre></div>
+          <div><h4>Response <span class="status">200 OK</span></h4><pre>{
+  "@odata.etag": "W/\"JzIwOzE3ODg5MDEyMzQ1Njc4OTAxMjM7Jw==\"",
+  "id": "c3b1d9f4-1a6e-ef11-9f88-6045bdc8c1a7",
+  "number": "SQ-1019",
+  "externalDocumentNumber": "WEB-Q-2045",
+  "customerNumber": "C00010",
+  "customerName": "Acme Ltd",
+  "currencyCode": "CAD",
+  "discountAmount": 0,
+  "totalAmountExcludingTax": 645,
+  "totalTaxAmount": 83.85,
+  "totalAmountIncludingTax": 728.85,
+  "status": "Draft",
+  "validUntilDate": "2026-12-11",
+  "salesQuoteLines": [
+    {
+      "id": "e8a4c2b0-1a6e-ef11-9f88-6045bdc8c1a7",
+      "sequence": 10000,
+      "lineObjectNumber": "1000",
+      "description": "Concrete compression tester",
+      "quantity": 5,
+      "unitPrice": 129,
+      "amountExcludingTax": 645,
+      "amountIncludingTax": 728.85
+    }
+  ]
+}</pre></div>
+          <p>Show these totals to the customer, and keep the new <code>@odata.etag</code> for any later update.</p>
+        </div>
+      </details>
+    </li>
+  </ol>
+</section>
+
+<section class="phase" aria-labelledby="p3">
+  <div class="phase-head"><h3 id="p3">Close the deal</h3><p>Often days later</p></div>
+  <ol class="flow">
+    <li class="node" id="s7">
+      <div class="dot opt">7</div>
+      <details class="card opt">
+        <summary><span class="m PATCH">PATCH</span><span class="t">Update quote<span class="tag quiet">optional</span></span><span class="chev" aria-hidden="true"></span>
+          <span class="ep">{base}/companies({companyId})/salesQuotes({quoteId})</span></summary>
+        <div class="detail">
+          <div><h4>Headers</h4><pre>Authorization: Bearer {access_token}
+Content-Type: application/json
+If-Match: {@odata.etag}</pre></div>
+          <div><h4>Body</h4><pre>{ "validUntilDate": "2026-12-31" }</pre></div>
+          <div><h4>Response <span class="status">200 OK</span></h4><pre>{
+  "@odata.etag": "W/\"JzIwOzE5OTAwMTEyMjMzNDQ1NTY2Nzc7Jw==\"",
+  "id": "c3b1d9f4-1a6e-ef11-9f88-6045bdc8c1a7",
+  "number": "SQ-1019",
+  "validUntilDate": "2026-12-31",
+  "status": "Draft",
+  "totalAmountIncludingTax": 728.85,
+  "lastModifiedDateTime": "2026-11-12T09:41:27.05Z"
+}</pre></div>
+          <div><h4>Error example <span class="status err">412 Precondition Failed</span></h4><pre>{
+  "error": {
+    "code": "Request_EntityChanged",
+    "message": "Could not save the changes because the record was changed by another user."
+  }
+}</pre></div>
+          <p>On 412, read the quote again (step 6) and retry with the new etag.</p>
+        </div>
+      </details>
+    </li>
+
+    <li class="node" id="s8">
+      <div class="dot">8</div>
+      <details class="card">
+        <summary><span class="m POST">POST</span><span class="t">Send quote to customer</span><span class="chev" aria-hidden="true"></span>
+          <span class="ep">{base}/companies({companyId})/salesQuotes({quoteId})/Microsoft.NAV.send</span></summary>
+        <div class="detail">
+          <div><h4>Headers</h4><pre>Authorization: Bearer {access_token}</pre></div>
+          <div><h4>Body</h4><pre>(none)</pre></div>
+          <div><h4>Response <span class="status">204 No Content</span></h4><pre>(empty body)</pre></div>
+          <p>Business Central emails the quote to the quote's email address and sets <code>status</code> to Sent and <code>sentDate</code> to now.</p>
+        </div>
+      </details>
+    </li>
+
+    <li class="node decision">
+      <div class="dot dec" aria-hidden="true"></div>
+      <div>
+        <div class="q">Customer accepts?</div>
+        <div class="branches">
+          <div class="branch go"><b>Yes</b>Convert to a sales order (step 9).</div>
+          <div class="branch"><b>No</b>Let it expire after <code>validUntilDate</code>, or delete it with the same call as R.</div>
+        </div>
+      </div>
+    </li>
+
+    <li class="node" id="s9">
+      <div class="dot">9</div>
+      <details class="card">
+        <summary><span class="m POST">POST</span><span class="t">Convert to sales order</span><span class="chev" aria-hidden="true"></span>
+          <span class="ep">{base}/companies({companyId})/salesQuotes({quoteId})/Microsoft.NAV.makeOrder</span></summary>
+        <div class="detail">
+          <div><h4>Headers</h4><pre>Authorization: Bearer {access_token}</pre></div>
+          <div><h4>Body</h4><pre>(none)</pre></div>
+          <div><h4>Response <span class="status">204 No Content</span></h4><pre>(empty body)</pre></div>
+          <div><h4>Then find the new order <span class="status">200 OK</span></h4><pre>GET {base}/companies({companyId})/salesOrders?$filter=externalDocumentNumber eq 'WEB-Q-2045'
+
+{
+  "value": [
+    {
+      "id": "f1d27a3c-2b6e-ef11-9f88-6045bdc8c1a7",
+      "number": "S-ORD101024",
+      "externalDocumentNumber": "WEB-Q-2045",
+      "customerNumber": "C00010",
+      "totalAmountIncludingTax": 728.85,
+      "status": "Draft"
+    }
+  ]
+}</pre></div>
+          <p>The quote is removed once the order exists, so look the order up by <code>externalDocumentNumber</code>. To invoice directly instead, call <code>Microsoft.NAV.makeInvoice</code>.</p>
+        </div>
+      </details>
+    </li>
+
+    <li class="end" aria-label="End of flow">
+      <div class="dot" aria-hidden="true">✓</div>
+      <p>Sales order created in Business Central</p>
+    </li>
+  </ol>
+</section>
+
+<footer>Business Central API v2.0. Response values are illustrative; IDs, numbers and tax depend on your environment. Test against a Sandbox before Production.</footer>
+</div>
+
+<script>
+document.querySelectorAll("[data-copy]").forEach(b => {
+  b.addEventListener("click", async () => {
+    const text = document.getElementById(b.dataset.copy).textContent;
+    try { await navigator.clipboard.writeText(text); b.textContent = "Copied"; }
+    catch (e) { b.textContent = "Select to copy"; }
+    setTimeout(() => (b.textContent = "Copy"), 1500);
+  });
+});
+
+const toggle = document.getElementById("expand");
+toggle.addEventListener("click", () => {
+  const open = toggle.textContent === "Open all steps";
+  document.querySelectorAll("details.card").forEach(d => (d.open = open));
+  toggle.textContent = open ? "Close all steps" : "Open all steps";
+});
+
+function goTo(id) {
+  const li = document.getElementById(id);
+  if (!li) return;
+  const d = li.querySelector("details");
+  if (d) d.open = true;
+  li.scrollIntoView({ behavior: matchMedia("(prefers-reduced-motion: reduce)").matches ? "auto" : "smooth", block: "start" });
+}
+document.querySelectorAll(".dnode").forEach(g => {
+  g.addEventListener("click", () => goTo(g.dataset.go));
+  g.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); goTo(g.dataset.go); } });
+});
+</script>
+</body>
+</html>
