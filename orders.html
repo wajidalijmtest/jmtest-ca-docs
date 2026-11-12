@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flow 2 · Orders · JMtest integration docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --yellow:#FFE828; --on-yellow:#151515; --yellow-soft:#FFF9C9;
+  --bg:#FFFFFF; --panel:#F6F6F3; --ink:#151515; --muted:#5E6166; --line:#E2E2DC;
+  --green:#1B7F3B; --red:#B42318; --red-soft:#FDF0EE; --amber:#8A5A00; --amber-soft:#FFF4DB;
+  --sans:"Barlow", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.55}
+.page{max-width:980px;margin:0 auto;padding:40px 24px 96px}
+a{color:inherit}
+.home{display:inline-block;font-size:15px;font-weight:600;text-decoration:none;margin-bottom:20px;border-bottom:2px solid var(--yellow)}
+.home:hover{background:var(--yellow)}
+
+header{border-left:8px solid var(--yellow);padding:4px 0 4px 24px;margin-bottom:32px}
+.brand{font-weight:700;font-size:15px;letter-spacing:.02em;margin:0 0 10px}
+.brand b{background:var(--yellow);color:var(--on-yellow);padding:2px 8px;margin-right:8px}
+h1{font-size:44px;line-height:1.08;font-weight:700;margin:0;letter-spacing:-.01em}
+.lede{color:var(--muted);margin:12px 0 0;max-width:64ch}
+
+.facts{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);margin-bottom:20px}
+.facts div{padding:14px 16px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.facts div:nth-child(3n){border-right:0}
+.facts div:nth-last-child(-n+3){border-bottom:0}
+.facts dt{font-size:13px;font-weight:600;color:var(--muted);margin:0}
+.facts dd{margin:2px 0 0;font-weight:600}
+
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 48px;padding:0;list-style:none}
+.toc a{display:block;font-size:15px;font-weight:600;text-decoration:none;border:1px solid var(--line);padding:6px 12px}
+.toc a:hover{border-color:var(--ink)}
+.toc a span{color:var(--muted);font-weight:500;margin-right:6px}
+
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin:56px 0 20px;scroll-margin-top:20px}
+.section-head h2{font-size:30px;font-weight:700;margin:0}
+.section-head h2 span{display:inline-block;background:var(--yellow);font-size:16px;padding:2px 8px;margin-right:10px;vertical-align:5px}
+.section-head p{margin:0;color:var(--muted);font-size:15px}
+.prose{max-width:68ch;margin:0 0 16px}
+.prose code,td code,.detail p code,.branch code,li code{font-family:var(--mono);font-size:14px;background:var(--panel);padding:0 4px}
+
+.diagram{border:1px solid var(--line);padding:20px 12px 12px;margin-bottom:12px}
+.diagram svg{display:block;width:100%;height:auto;margin:0 auto}
+.legend{display:flex;flex-wrap:wrap;gap:8px 24px;font-size:14px;color:var(--muted);margin:0 0 8px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:22px;height:14px;border:1.5px solid var(--ink);display:inline-block}
+.sw.dash{border-style:dashed;border-color:var(--muted)}
+.sw.yel{background:var(--yellow)}
+.sw.dark{background:var(--ink)}
+.sw.red{border-style:dashed;border-color:var(--red)}
+.sw.amb{background:var(--amber-soft);border-color:var(--amber)}
+
+.callout{border-left:4px solid var(--yellow);background:var(--yellow-soft);padding:14px 18px;margin:16px 0 24px;max-width:72ch}
+.callout b{display:block;margin-bottom:2px}
+.callout.warn{border-left-color:var(--red);background:var(--red-soft)}
+
+.phase-head{display:flex;align-items:baseline;gap:14px;margin:28px 0 6px}
+.phase-head h3{font-size:22px;font-weight:700;margin:0}
+.phase-head p{margin:0;color:var(--muted);font-size:15px}
+.flow{position:relative;margin:0 0 24px;padding-left:0;list-style:none}
+.flow::before{content:"";position:absolute;left:21px;top:28px;bottom:28px;width:2px;background:var(--line)}
+.node{position:relative;display:grid;grid-template-columns:44px 1fr;gap:16px;padding:10px 0}
+.dot{width:44px;height:44px;border-radius:50%;background:var(--yellow);color:var(--on-yellow);display:grid;place-content:center;font-weight:700;font-size:15px;position:relative;z-index:1}
+.dot.opt{background:var(--bg);color:var(--ink);border:2px dashed var(--muted)}
+details.card{border:1px solid var(--line);background:var(--bg)}
+details.card[open]{border-color:var(--ink)}
+details.card.opt{border-style:dashed}
+summary{list-style:none;cursor:pointer;padding:12px 16px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary:focus-visible,.btn:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.m{font-family:var(--mono);font-size:12px;font-weight:500;padding:2px 8px;border:1.5px solid var(--ink);text-align:center;min-width:64px}
+.m.POST{background:var(--ink);color:var(--bg)}
+.m.DELETE{border-color:var(--red);color:var(--red)}
+.m.APP{border-style:dashed}
+.t{font-weight:600;font-size:18px}
+.chev{width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin:0 4px 4px 0;transition:transform .15s}
+details[open] .chev{transform:rotate(-135deg);margin-bottom:-2px}
+.ep{grid-column:2 / 4;font-family:var(--mono);font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.tag{font-size:13px;font-weight:600;background:var(--yellow);color:var(--on-yellow);padding:1px 8px;margin-left:8px;vertical-align:2px}
+.tag.quiet{background:none;color:var(--muted);border:1px solid var(--line);font-weight:500}
+.tag.prop{background:var(--amber-soft);color:var(--amber)}
+.detail{padding:4px 16px 16px;display:grid;gap:14px}
+.detail h4{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.status{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--green);border:1px solid var(--green);padding:0 6px}
+.detail pre{margin:0;font-family:var(--mono);font-size:13px;line-height:1.55;background:var(--panel);border:1px solid var(--line);padding:10px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.detail p{margin:0;font-size:16px;max-width:66ch}
+.detail ul{margin:0;padding-left:20px;font-size:16px;max-width:66ch}
+
+.table-wrap{overflow-x:auto;margin:0 0 20px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:600;background:var(--panel)}
+tr:last-child td{border-bottom:0}
+td.mono{font-family:var(--mono);font-size:13px;white-space:nowrap}
+tr.prop td{background:var(--amber-soft)}
+
+.pipeline{list-style:none;margin:0 0 8px;padding:0;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px}
+.pipeline li{border:1px solid var(--line);padding:16px 16px 14px;position:relative}
+.pipeline .pn{display:inline-grid;place-content:center;width:30px;height:30px;background:var(--yellow);font-weight:700;margin-bottom:8px}
+.pipeline h4{font-size:17px;margin:0 0 4px}
+.pipeline p{margin:0;font-size:15px}
+.pipeline .ours{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);color:var(--muted)}
+.decisions{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.decision{border:1px solid var(--line);padding:18px 20px}
+.decision h3{font-size:18px;margin:0 0 6px}
+.decision p{margin:0 0 8px;font-size:16px;color:var(--muted)}
+.decision p:last-child{margin:0}
+.decision .rec{color:var(--ink)}
+.decision .rec b{background:var(--yellow);padding:0 6px;margin-right:4px}
+
+.btn{font:inherit;font-size:14px;font-weight:500;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:5px 12px;cursor:pointer}
+.btn:hover{border-color:var(--ink)}
+footer{margin-top:64px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:14px}
+
+@media (max-width:720px){
+  h1{font-size:32px}
+  .facts{grid-template-columns:1fr 1fr}
+  .facts div{border-right:1px solid var(--line)!important;border-bottom:1px solid var(--line)!important}
+  .decisions{grid-template-columns:1fr}
+  summary{grid-template-columns:auto 1fr}
+  .chev{display:none}
+  .ep{grid-column:1 / 3}
+  .section-head{flex-direction:column;align-items:flex-start}
+}
+@media (prefers-reduced-motion: reduce){.chev{transition:none}}
+@media print{.btn,.home{display:none} details.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<a class="home" href="index.html">← All docs</a>
+
+<header>
+  <p class="brand"><b>JMtest</b>Flow 2 · jmtest.ca</p>
+  <h1>Orders: from checkout to Business Central</h1>
+  <p class="lede">How a paid jmtest.ca order is saved, confirmed to the customer, and synced to Business Central as a Sales Quote, including what happens when the sync fails and how the sales team finds out.</p>
+</header>
+
+<dl class="facts">
+  <div><dt>Who orders</dt><dd>Customers on jmtest.ca, en-CA</dd></div>
+  <div><dt>Payment</dt><dd>Stripe, CAD</dd></div>
+  <div><dt>Tax</dt><dd>Avalara</dd></div>
+  <div><dt>Pickup</dt><dd>Edmonton, Richmond, Calgary</dd></div>
+  <div><dt>Line types</dt><dd>Purchase + calibration add-on</dd></div>
+  <div><dt>BC document</dt><dd>Sales Quote (see decisions)</dd></div>
+</dl>
+
+<ul class="toc">
+  <li><a href="#overview"><span>1</span>Whole flow</a></li>
+  <li><a href="#sync"><span>2</span>Sync to BC</a></li>
+  <li><a href="#failure"><span>3</span>When sync fails</a></li>
+  <li><a href="#steps"><span>4</span>Step by step</a></li>
+  <li><a href="#data"><span>5</span>Data model</a></li>
+  <li><a href="#decisions"><span>6</span>Open decisions</a></li>
+  <li><a href="#tax"><span>7</span>Tax with Avalara</a></li>
+</ul>
+
+<!-- =============== 1. WHOLE FLOW =============== -->
+<div class="section-head" id="overview"><h2><span>1</span>The whole flow</h2><p>Customer side, in apps/web</p></div>
+<p class="prose">The customer pays, and the order is saved in one database transaction together with an outbox row. Everything the customer sees happens here. Business Central is not called during checkout at all, so a Business Central outage never blocks a sale.</p>
+
+<div class="diagram">
+<svg viewBox="0 0 960 372" role="img" aria-labelledby="d1t d1d" font-family="Barlow, Segoe UI, sans-serif">
+  <title id="d1t">Checkout flow</title>
+  <desc id="d1d">Product page to checkout. Checkout gets tax from Avalara and takes payment through Stripe. When paid, the order is saved in one transaction with an outbox row. Klaviyo sends the customer confirmation and the sales team email. The sync job then picks up the outbox row.</desc>
+  <defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#151515"/></marker></defs>
+  <g fill="none" stroke="#151515" stroke-width="1.5">
+    <path d="M180 190H218" marker-end="url(#a1)"/>
+    <path d="M310 158V96" marker-end="url(#a1)" marker-start="url(#a1)"/>
+    <path d="M310 222V284" marker-end="url(#a1)" marker-start="url(#a1)"/>
+    <path d="M400 190H458" marker-end="url(#a1)"/>
+    <path d="M570 144V90" marker-end="url(#a1)"/>
+    <path d="M680 56H700V36H718" marker-end="url(#a1)"/>
+    <path d="M700 56V104H718" marker-end="url(#a1)"/>
+    <path d="M680 190H718" marker-end="url(#a1)"/>
+  </g>
+  <text x="429" y="181" text-anchor="middle" font-size="13" font-weight="600" fill="#5E6166">paid</text>
+
+  <rect x="20" y="158" width="160" height="64" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="100" y="184" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Product page</text>
+  <text x="100" y="204" text-anchor="middle" font-size="13" fill="#5E6166">buy now · add to cart</text>
+
+  <rect x="220" y="158" width="180" height="64" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="310" y="184" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Checkout</text>
+  <text x="310" y="204" text-anchor="middle" font-size="13" fill="#5E6166">pickup location · CAD</text>
+
+  <rect x="220" y="20" width="180" height="74" fill="#fff" stroke="#5E6166" stroke-width="1.5"/>
+  <text x="310" y="44" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Avalara</text>
+  <text x="310" y="63" text-anchor="middle" font-size="13" fill="#5E6166">tax on subtotal,</text>
+  <text x="310" y="80" text-anchor="middle" font-size="13" fill="#5E6166">freight + handling</text>
+
+  <rect x="220" y="286" width="180" height="64" fill="#fff" stroke="#5E6166" stroke-width="1.5"/>
+  <text x="310" y="312" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Stripe</text>
+  <text x="310" y="332" text-anchor="middle" font-size="13" fill="#5E6166">CAD payment</text>
+
+  <rect x="460" y="144" width="220" height="92" fill="#151515"/>
+  <text x="570" y="170" text-anchor="middle" font-size="16" font-weight="700" fill="#fff">Save order</text>
+  <text x="570" y="190" text-anchor="middle" font-size="13" fill="#D9D9D4">one transaction:</text>
+  <text x="570" y="207" text-anchor="middle" font-size="12" font-family="JetBrains Mono, monospace" fill="#FFE828">orders + order_items</text>
+  <text x="570" y="223" text-anchor="middle" font-size="12" font-family="JetBrains Mono, monospace" fill="#FFE828">+ integration_outbox</text>
+
+  <rect x="460" y="24" width="220" height="64" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="570" y="50" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Klaviyo</text>
+  <text x="570" y="70" text-anchor="middle" font-size="13" fill="#5E6166">order event</text>
+
+  <rect x="720" y="8" width="220" height="56" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="830" y="31" text-anchor="middle" font-size="15" font-weight="700" fill="#151515">Customer</text>
+  <text x="830" y="50" text-anchor="middle" font-size="13" fill="#5E6166">order confirmation email</text>
+
+  <rect x="720" y="76" width="220" height="56" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="830" y="99" text-anchor="middle" font-size="15" font-weight="700" fill="#151515">Sales team</text>
+  <text x="830" y="118" text-anchor="middle" font-size="13" fill="#5E6166">customerservice@jmtest.ca</text>
+
+  <rect x="720" y="158" width="220" height="64" fill="#FFE828" stroke="#151515" stroke-width="1.5"/>
+  <text x="830" y="184" text-anchor="middle" font-size="15" font-weight="700" fill="#151515">Sync job picks it up</text>
+  <text x="830" y="204" text-anchor="middle" font-size="13" fill="#151515">outbox status pending → §2</text>
+</svg>
+</div>
+<div class="legend">
+  <span><i class="sw"></i>apps/web and services</span>
+  <span><i class="sw dark"></i>Postgres</span>
+  <span><i class="sw yel"></i>Hand-off to the sync job</span>
+</div>
+<div class="callout"><b>The sales team email means “paid”, not “in Business Central”.</b>It is sent before the sync runs. A separate alert (§3) tells the team when an order could not be created in Business Central.</div>
+
+<!-- =============== 2. SYNC =============== -->
+<div class="section-head" id="sync"><h2><span>2</span>Sync to Business Central</h2><p>jobs/integration-outbox</p></div>
+<p class="prose">The outbox job picks up pending <code>order.confirmed</code> rows and creates the Sales Quote. Every step is safe to repeat, so a retry after a timeout never creates a second customer or a second quote.</p>
+
+<div class="diagram">
+<svg viewBox="0 0 960 960" role="img" aria-labelledby="d2t d2d" font-family="Barlow, Segoe UI, sans-serif">
+  <title id="d2t">Outbox sync to Business Central</title>
+  <desc id="d2d">Claim a pending row, find the customer in BC and create it from the default template if missing, check for an existing quote, create the quote header, add lines, read totals, compare with the amount paid and flag for sales review if different, then mark the row as sent. Any failed BC call goes to failure handling.</desc>
+  <defs><marker id="a2" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#151515"/></marker>
+  <marker id="a2r" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#B42318"/></marker></defs>
+
+  <g fill="none" stroke="#151515" stroke-width="1.5">
+    <path d="M300 90V120" marker-end="url(#a2)"/>
+    <path d="M300 182V218" marker-end="url(#a2)"/>
+    <path d="M300 284V320" marker-end="url(#a2)"/>
+    <path d="M390 252H558" marker-end="url(#a2)"/>
+    <path d="M730 282V352H472" marker-end="url(#a2)"/>
+    <path d="M300 382V412" marker-end="url(#a2)"/>
+    <path d="M300 474V504" marker-end="url(#a2)"/>
+    <path d="M300 566V596" marker-end="url(#a2)"/>
+    <path d="M300 658V692" marker-end="url(#a2)"/>
+    <path d="M300 762V796" marker-end="url(#a2)"/>
+    <path d="M420 728H558" marker-end="url(#a2)"/>
+    <path d="M730 758V828H472" marker-end="url(#a2)"/>
+  </g>
+  <g fill="none" stroke="#B42318" stroke-width="1.5" stroke-dasharray="5 4">
+    <path d="M130 152H104M130 352H104M130 444H104M130 536H104M130 628H104"/>
+    <path d="M104 152V908H128" marker-end="url(#a2r)"/>
+  </g>
+  <g font-size="13" font-weight="600" fill="#5E6166">
+    <text x="312" y="306">yes</text>
+    <text x="474" y="242" text-anchor="middle">no</text>
+    <text x="312" y="782">yes</text>
+    <text x="489" y="718" text-anchor="middle">no</text>
+  </g>
+
+  <!-- boxes: x 130..470 -->
+  <rect x="130" y="30" width="340" height="60" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="300" y="55" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Claim a pending row</text>
+  <text x="300" y="75" text-anchor="middle" font-size="12" font-family="JetBrains Mono, monospace" fill="#5E6166">topic = order.confirmed, due now</text>
+
+  <rect x="130" y="122" width="340" height="60" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="300" y="147" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Find customer in BC</text>
+  <text x="300" y="167" text-anchor="middle" font-size="12" font-family="JetBrains Mono, monospace" fill="#5E6166">GET /customers?$filter=email eq '…'</text>
+
+  <polygon points="210,252 300,220 390,252 300,284" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="300" y="257" text-anchor="middle" font-size="15" font-weight="600" fill="#151515">Customer exists?</text>
+
+  <rect x="560" y="222" width="340" height="60" fill="#fff" stroke="#5E6166" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="730" y="247" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Create customer</text>
+  <text x="730" y="267" text-anchor="middle" font-size="13" fill="#5E6166">BC applies the default customer template</text>
+
+  <rect x="130" y="322" width="340" height="60" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="300" y="347" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Check for an existing quote</text>
+  <text x="300" y="367" text-anchor="middle" font-size="13" fill="#5E6166">by externalDocumentNumber · reuse if found</text>
+
+  <rect x="130" y="414" width="340" height="60" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="300" y="439" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Create Sales Quote header</text>
+  <text x="300" y="459" text-anchor="middle" font-size="12" font-family="JetBrains Mono, monospace" fill="#5E6166">POST /salesQuotes</text>
+
+  <rect x="130" y="506" width="340" height="60" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="300" y="531" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Add lines</text>
+  <text x="300" y="551" text-anchor="middle" font-size="13" fill="#5E6166">purchase · calibration · freight and handling</text>
+
+  <rect x="130" y="598" width="340" height="60" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="300" y="623" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Read totals</text>
+  <text x="300" y="643" text-anchor="middle" font-size="12" font-family="JetBrains Mono, monospace" fill="#5E6166">GET /salesQuotes(id)?$expand=…Lines</text>
+
+  <polygon points="180,728 300,694 420,728 300,762" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="300" y="733" text-anchor="middle" font-size="14" font-weight="600" fill="#151515">Matches amount paid?</text>
+
+  <rect x="560" y="698" width="340" height="60" fill="#FFF4DB" stroke="#8A5A00" stroke-width="1.5"/>
+  <text x="730" y="723" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Flag for sales review</text>
+  <text x="730" y="743" text-anchor="middle" font-size="13" fill="#5E6166">BC total differs from the Stripe charge</text>
+
+  <rect x="130" y="798" width="340" height="60" fill="#FFE828" stroke="#151515" stroke-width="1.5"/>
+  <text x="300" y="823" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Mark as sent</text>
+  <text x="300" y="843" text-anchor="middle" font-size="13" fill="#151515">outbox status sent · BC number saved on order</text>
+
+  <rect x="130" y="880" width="340" height="56" fill="#fff" stroke="#B42318" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="300" y="904" text-anchor="middle" font-size="15" font-weight="700" fill="#B42318">Any BC call fails</text>
+  <text x="300" y="923" text-anchor="middle" font-size="13" fill="#5E6166">go to failure handling, §3</text>
+</svg>
+</div>
+<div class="legend">
+  <span><i class="sw"></i>Every order</span>
+  <span><i class="sw dash"></i>Only when needed</span>
+  <span><i class="sw amb"></i>Needs a person to check</span>
+  <span><i class="sw yel"></i>Done</span>
+  <span><i class="sw red"></i>Failure path</span>
+</div>
+
+<!-- =============== 3. FAILURE =============== -->
+<div class="section-head" id="failure"><h2><span>3</span>When the sync fails</h2><p>Retry, then roll back and tell people</p></div>
+<p class="prose">The order is already paid and saved, so a failed sync never loses it. The job retries errors that can recover by themselves, and stops straight away on errors that cannot. Either way, after the last attempt the sales team is told and the order shows up in the CMS with a Retry button.</p>
+
+<div class="diagram">
+<svg viewBox="0 0 960 670" role="img" aria-labelledby="d3t d3d" font-family="Barlow, Segoe UI, sans-serif">
+  <title id="d3t">Failure handling</title>
+  <desc id="d3d">When a BC call fails, temporary errors are retried with backoff until the fifth failure. Permanent errors, or the fifth failure, roll back any partial quote, mark the outbox row failed, and notify the sales team by email, Teams and the CMS Orders module, and JMTS IT through Application Insights.</desc>
+  <defs><marker id="a3" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#151515"/></marker></defs>
+  <g fill="none" stroke="#151515" stroke-width="1.5">
+    <path d="M480 72V92" marker-end="url(#a3)"/>
+    <path d="M370 128H190V208" marker-end="url(#a3)"/>
+    <path d="M590 128H770V208" marker-end="url(#a3)"/>
+    <path d="M190 266V304" marker-end="url(#a3)"/>
+    <path d="M190 374V408" marker-end="url(#a3)"/>
+    <path d="M310 340H618" marker-end="url(#a3)"/>
+    <path d="M770 266V310" marker-end="url(#a3)"/>
+    <path d="M770 368V398" marker-end="url(#a3)"/>
+    <path d="M770 456V486" marker-end="url(#a3)"/>
+    <path d="M770 544V566M135 566H825"/>
+    <path d="M135 566V588" marker-end="url(#a3)"/>
+    <path d="M365 566V588" marker-end="url(#a3)"/>
+    <path d="M595 566V588" marker-end="url(#a3)"/>
+    <path d="M825 566V588" marker-end="url(#a3)"/>
+  </g>
+  <g font-size="13" font-weight="600" fill="#5E6166">
+    <text x="280" y="120" text-anchor="middle">temporary</text>
+    <text x="680" y="120" text-anchor="middle">permanent</text>
+    <text x="202" y="394">yes</text>
+    <text x="464" y="331" text-anchor="middle">no · 5th failure</text>
+  </g>
+
+  <rect x="330" y="16" width="300" height="56" fill="#fff" stroke="#B42318" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="480" y="40" text-anchor="middle" font-size="16" font-weight="700" fill="#B42318">A BC call fails</text>
+  <text x="480" y="60" text-anchor="middle" font-size="13" fill="#5E6166">any call in §2</text>
+
+  <polygon points="370,128 480,94 590,128 480,162" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="480" y="133" text-anchor="middle" font-size="15" font-weight="600" fill="#151515">What kind of error?</text>
+
+  <rect x="40" y="210" width="300" height="56" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="190" y="234" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Temporary</text>
+  <text x="190" y="254" text-anchor="middle" font-size="12" font-family="JetBrains Mono, monospace" fill="#5E6166">timeout · 429 · 5xx</text>
+
+  <polygon points="70,340 190,306 310,340 190,374" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="190" y="345" text-anchor="middle" font-size="15" font-weight="600" fill="#151515">Fewer than 5 failures?</text>
+
+  <rect x="40" y="410" width="300" height="56" fill="#fff" stroke="#5E6166" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="190" y="434" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Retry later</text>
+  <text x="190" y="454" text-anchor="middle" font-size="13" fill="#5E6166">attempts + 1 · next_attempt_at + backoff</text>
+  <text x="190" y="490" text-anchor="middle" font-size="13" fill="#5E6166">back to “Claim a pending row” when due</text>
+
+  <rect x="620" y="210" width="300" height="56" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="770" y="234" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Permanent</text>
+  <text x="770" y="254" text-anchor="middle" font-size="12" font-family="JetBrains Mono, monospace" fill="#5E6166">400 · 403 · 404</text>
+
+  <rect x="620" y="312" width="300" height="56" fill="#fff" stroke="#B42318" stroke-width="1.5"/>
+  <text x="770" y="336" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Roll back partial quote</text>
+  <text x="770" y="356" text-anchor="middle" font-size="12" font-family="JetBrains Mono, monospace" fill="#5E6166">DELETE /salesQuotes(id), if any</text>
+
+  <rect x="620" y="400" width="300" height="56" fill="#fff" stroke="#B42318" stroke-width="1.5"/>
+  <text x="770" y="424" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Mark as failed</text>
+  <text x="770" y="444" text-anchor="middle" font-size="13" fill="#5E6166">status failed · last_error saved</text>
+
+  <rect x="620" y="488" width="300" height="56" fill="#151515"/>
+  <text x="770" y="512" text-anchor="middle" font-size="16" font-weight="700" fill="#FFE828">Notify people</text>
+  <text x="770" y="532" text-anchor="middle" font-size="13" fill="#D9D9D4">same run, no waiting</text>
+
+  <rect x="30" y="590" width="210" height="56" fill="#FFE828" stroke="#151515" stroke-width="1.5"/>
+  <text x="135" y="614" text-anchor="middle" font-size="15" font-weight="700" fill="#151515">Sales team email</text>
+  <text x="135" y="633" text-anchor="middle" font-size="12" fill="#151515">customerservice@jmtest.ca</text>
+
+  <rect x="260" y="590" width="210" height="56" fill="#FFE828" stroke="#151515" stroke-width="1.5"/>
+  <text x="365" y="614" text-anchor="middle" font-size="15" font-weight="700" fill="#151515">Teams message</text>
+  <text x="365" y="633" text-anchor="middle" font-size="12" fill="#151515">sales channel</text>
+
+  <rect x="490" y="590" width="210" height="56" fill="#FFE828" stroke="#151515" stroke-width="1.5"/>
+  <text x="595" y="614" text-anchor="middle" font-size="15" font-weight="700" fill="#151515">CMS Orders module</text>
+  <text x="595" y="633" text-anchor="middle" font-size="12" fill="#151515">Sync failed + Retry button</text>
+
+  <rect x="720" y="590" width="210" height="56" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="825" y="614" text-anchor="middle" font-size="15" font-weight="700" fill="#151515">Application Insights</text>
+  <text x="825" y="633" text-anchor="middle" font-size="12" fill="#5E6166">alert to JMTS IT</text>
+</svg>
+</div>
+
+<h3 style="font-size:20px;margin:28px 0 8px">Which errors are retried</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Response</th><th>Type</th><th>What the job does</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">timeout, 429, 500, 502, 503, 504</td><td>Temporary</td><td>Retry with backoff. For 429, wait at least the <code>Retry-After</code> time.</td></tr>
+    <tr><td class="mono">401</td><td>Temporary, once</td><td>Get a new token and retry straight away. A second 401 is permanent: the secret or app registration is wrong, so IT is alerted.</td></tr>
+    <tr><td class="mono">412</td><td>Temporary, once</td><td>Read the record again for a fresh etag and retry.</td></tr>
+    <tr><td class="mono">400, 404</td><td>Permanent</td><td>Stop. The data is wrong, for example a SKU with no BC item number. Retrying gives the same error.</td></tr>
+    <tr><td class="mono">403</td><td>Permanent</td><td>Stop and alert IT. The app is missing permissions in Business Central.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 style="font-size:20px;margin:28px 0 8px">Retry schedule</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Failure</th><th>attempts after</th><th>Next try</th></tr></thead>
+  <tbody>
+    <tr><td>1st</td><td class="mono">1</td><td>in 1 minute</td></tr>
+    <tr><td>2nd</td><td class="mono">2</td><td>in 5 minutes</td></tr>
+    <tr><td>3rd</td><td class="mono">3</td><td>in 15 minutes</td></tr>
+    <tr><td>4th</td><td class="mono">4</td><td>in 30 minutes</td></tr>
+    <tr><td>5th</td><td class="mono">5</td><td>No retry. Roll back, mark failed, notify.</td></tr>
+  </tbody>
+</table></div>
+<p class="prose">Total wait before the sales team hears about a temporary problem: about 51 minutes. A permanent error alerts them on the first attempt.</p>
+
+<h3 style="font-size:20px;margin:28px 0 8px">What the sales team receives</h3>
+<div class="detail" style="padding:0">
+<pre>Subject: Order ORD-CA-000123 is paid but not in Business Central
+
+The order below was paid on jmtest.ca but could not be created
+in Business Central. The customer has their confirmation.
+Please create the quote by hand, or press Retry in the CMS.
+
+Order        ORD-CA-000123   (paid 2026-11-12 10:42, CAD 1,984.50)
+Customer     Acme Testing Ltd · Dana Ruiz · dana@acmetesting.ca
+Pickup       Edmonton
+Lines        2 × MEG-1000 Insulation tester         1,450.00
+             2 × ISO 17025 calibration (for MEG-1000) 380.00
+             Handling                                  60.00
+Failed at    Add lines (attempt 1 of 5)
+BC error     400 · Item 'MEG-1000-CAL' does not exist.
+
+Open in CMS: Orders › ORD-CA-000123</pre>
+</div>
+<div class="callout"><b>Retry from the CMS</b>Pressing Retry sets the outbox row back to <code>status = 'pending'</code>, <code>attempts = 0</code> and <code>next_attempt_at = now()</code>. The duplicate checks in §2 make this safe even if part of the quote was created before.</div>
+
+<!-- =============== 4. STEPS =============== -->
+<div class="section-head" id="steps"><h2><span>4</span>Step by step</h2><button class="btn" type="button" id="expand">Open all steps</button></div>
+<p class="prose"><code>{base}</code> is <code>https://api.businesscentral.dynamics.com/v2.0/{tenantId}/{environment}/api/v2.0/companies({companyId})</code>. Every BC call sends <code>Authorization: Bearer {access_token}</code>. Values in the examples are illustrative.</p>
+
+<div class="phase-head"><h3>Checkout</h3><p>apps/web, while the customer waits</p></div>
+<ol class="flow">
+  <li class="node"><div class="dot">C1</div>
+    <details class="card"><summary><span class="m APP">APP</span><span class="t">Build the cart and choose pickup</span><span class="chev" aria-hidden="true"></span><span class="ep">commerce.cart_items</span></summary>
+      <div class="detail">
+        <p>The customer adds products and picks a pickup location: Edmonton, Richmond or Calgary. A calibration add-on is its own cart line with <code>line_type = 'calibration'</code> and <code>parent_line_id</code> pointing at the product line; its quantity always equals the parent's.</p>
+        <p>Rental lines cannot be bought directly. A cart with a rental line is sent as an RFQ instead, and <code>checkout/intent</code> returns <code>409</code> if one gets through.</p>
+      </div></details></li>
+  <li class="node"><div class="dot">C2</div>
+    <details class="card"><summary><span class="m APP">APP</span><span class="t">Calculate tax with Avalara</span><span class="chev" aria-hidden="true"></span><span class="ep">subtotal + freight + handling</span></summary>
+      <div class="detail">
+        <p>The storefront sends the cart to AvaTax as a <code>SalesOrder</code> estimate, with the pickup branch as the address and freight and handling as separate lines. AvaTax returns the tax the customer pays. A new estimate is requested whenever the cart or pickup location changes. Full detail in §7.</p>
+      </div></details></li>
+  <li class="node"><div class="dot">C3</div>
+    <details class="card"><summary><span class="m APP">APP</span><span class="t">Take payment with Stripe</span><span class="chev" aria-hidden="true"></span><span class="ep">checkout/intent → Stripe PaymentIntent, CAD</span></summary>
+      <div class="detail">
+        <p>The order is saved only once Stripe confirms the payment, through the <code>payment_intent.succeeded</code> webhook. Handle that webhook idempotently: Stripe can send it more than once, and the outbox unique key <code>(topic, aggregate_id)</code> stops a second outbox row.</p>
+        <p>Once the payment succeeds, record the tax in Avalara with <code>createoradjust</code>, <code>type: SalesInvoice</code>, <code>commit: true</code> and the order number as the code (§7).</p>
+      </div></details></li>
+  <li class="node"><div class="dot">C4</div>
+    <details class="card"><summary><span class="m APP">APP</span><span class="t">Save order and outbox row in one transaction</span><span class="chev" aria-hidden="true"></span><span class="ep">commerce.orders · order_items · integration_outbox</span></summary>
+      <div class="detail">
+        <p>All three writes commit together or not at all. That is what guarantees every paid order reaches the sync job.</p>
+        <div><h4>Outbox row</h4><pre>topic            'order.confirmed'
+aggregate_id     orders.id
+status           'pending'
+attempts         0
+next_attempt_at  now()
+payload          (below)</pre></div>
+        <div><h4>Payload: a snapshot, so later edits to the order don't change what is sent</h4><pre>{
+  "orderNumber": "ORD-CA-000123",
+  "currency": "CAD",
+  "pickupLocation": "EDMONTON",
+  "customer": {
+    "company": "Acme Testing Ltd",
+    "name": "Dana Ruiz",
+    "email": "dana@acmetesting.ca",
+    "phone": "+1 780 555 0142"
+  },
+  "lines": [
+    { "lineId": "6c1e…", "lineType": "purchase",    "sku": "MEG-1000", "quantity": 2, "unitPrice": 725.00 },
+    { "lineId": "9a40…", "lineType": "calibration", "parentLineId": "6c1e…",
+      "calibrationLevel": "iso17025", "quantity": 2, "unitPrice": 190.00 }
+  ],
+  "charges": { "freight": 0.00, "handling": 60.00 },
+  "tax": { "provider": "avalara", "amount": 94.50 },
+  "total": 1984.50,
+  "stripePaymentIntentId": "pi_3QxY…"
+}</pre></div>
+      </div></details></li>
+  <li class="node"><div class="dot">C5</div>
+    <details class="card"><summary><span class="m APP">APP</span><span class="t">Send the Klaviyo order event</span><span class="chev" aria-hidden="true"></span><span class="ep">customer confirmation · sales team email</span></summary>
+      <div class="detail">
+        <p>Klaviyo sends the customer their confirmation and the sales team a new-order email at customerservice@jmtest.ca. Both go out whatever happens in Business Central later: the customer has paid, so they get their confirmation regardless.</p>
+      </div></details></li>
+</ol>
+
+<div class="phase-head"><h3>Sync to Business Central</h3><p>jobs/integration-outbox, in the background</p></div>
+<ol class="flow">
+  <li class="node"><div class="dot">S1</div>
+    <details class="card"><summary><span class="m APP">SQL</span><span class="t">Claim pending rows</span><span class="chev" aria-hidden="true"></span><span class="ep">commerce.integration_outbox</span></summary>
+      <div class="detail">
+        <p>The claim pushes <code>next_attempt_at</code> forward as a short lease, so two job runs never work on the same order and a crashed run's rows come back by themselves after five minutes.</p>
+        <div><h4>Query</h4><pre>UPDATE commerce.integration_outbox o
+SET    next_attempt_at = now() + interval '5 minutes'
+WHERE  o.id IN (
+  SELECT id FROM commerce.integration_outbox
+  WHERE  topic = 'order.confirmed'
+    AND  status = 'pending'
+    AND  next_attempt_at &lt;= now()
+  ORDER  BY created_at
+  LIMIT  10
+  FOR UPDATE SKIP LOCKED
+)
+RETURNING o.*;</pre></div>
+      </div></details></li>
+  <li class="node"><div class="dot">S2</div>
+    <details class="card"><summary><span class="m GET">GET</span><span class="t">Find the customer</span><span class="chev" aria-hidden="true"></span><span class="ep">{base}/customers?$filter=email eq 'dana@acmetesting.ca'</span></summary>
+      <div class="detail">
+        <div><h4>Response, found <span class="status">200 OK</span></h4><pre>{
+  "value": [
+    {
+      "id": "5d115c9c-44e3-ea11-bb43-000d3a2feca1",
+      "number": "C00042",
+      "displayName": "Acme Testing Ltd",
+      "email": "dana@acmetesting.ca",
+      "currencyCode": "CAD"
+    }
+  ]
+}</pre></div>
+        <p>An empty <code>value</code> array means not found: go to S2b. Because this runs on every attempt, a customer created by an earlier attempt is found here instead of being created twice.</p>
+      </div></details></li>
+  <li class="node"><div class="dot opt">S2b</div>
+    <details class="card opt"><summary><span class="m POST">POST</span><span class="t">Create the customer<span class="tag quiet">only if not found</span></span><span class="chev" aria-hidden="true"></span><span class="ep">{base}/customers</span></summary>
+      <div class="detail">
+        <div><h4>Body</h4><pre>{
+  "displayName": "Acme Testing Ltd",
+  "type": "Company",
+  "email": "dana@acmetesting.ca",
+  "phoneNumber": "+1 780 555 0142",
+  "currencyCode": "CAD"
+}</pre></div>
+        <div><h4>Response <span class="status">201 Created</span></h4><pre>{
+  "id": "7a2f8e10-9c4b-ef11-9f88-6045bdc8c1a7",
+  "number": "C00043",
+  "displayName": "Acme Testing Ltd",
+  "email": "dana@acmetesting.ca",
+  "currencyCode": "CAD"
+}</pre></div>
+        <p>Business Central fills posting groups, payment terms and tax area from the default customer template.</p>
+      </div></details></li>
+  <li class="node"><div class="dot">S3</div>
+    <details class="card"><summary><span class="m GET">GET</span><span class="t">Check for an existing quote</span><span class="chev" aria-hidden="true"></span><span class="ep">{base}/salesQuotes?$filter=externalDocumentNumber eq 'ORD-CA-000123'&amp;$expand=salesQuoteLines</span></summary>
+      <div class="detail">
+        <p>If an earlier attempt timed out after Business Central had already created the quote, it is found here. Reuse it and add only the lines it is missing. An empty <code>value</code> array means carry on to S4.</p>
+        <div><h4>Response, not found <span class="status">200 OK</span></h4><pre>{ "value": [] }</pre></div>
+      </div></details></li>
+  <li class="node"><div class="dot">S4</div>
+    <details class="card"><summary><span class="m POST">POST</span><span class="t">Create the Sales Quote header</span><span class="chev" aria-hidden="true"></span><span class="ep">{base}/salesQuotes</span></summary>
+      <div class="detail">
+        <div><h4>Body</h4><pre>{
+  "customerNumber": "C00042",
+  "externalDocumentNumber": "ORD-CA-000123",
+  "documentDate": "2026-11-12",
+  "currencyCode": "CAD",
+  "email": "dana@acmetesting.ca",
+  "shipmentMethodId": "{id of the PICKUP shipment method}"
+}</pre></div>
+        <div><h4>Response <span class="status">201 Created</span></h4><pre>{
+  "@odata.etag": "W/\"JzIwOzE0NTY3ODkwMTIzNDU2Nzg5MDE7Jw==\"",
+  "id": "c3b1d9f4-1a6e-ef11-9f88-6045bdc8c1a7",
+  "number": "SQ-1042",
+  "externalDocumentNumber": "ORD-CA-000123",
+  "customerNumber": "C00042",
+  "currencyCode": "CAD",
+  "totalAmountIncludingTax": 0,
+  "status": "Draft"
+}</pre></div>
+        <p>The order number goes in <code>externalDocumentNumber</code>. That is the link S3 relies on, and the number the sales team searches for in Business Central. Pickup location mapping is an open decision, see §6.</p>
+      </div></details></li>
+  <li class="node"><div class="dot">S5</div>
+    <details class="card"><summary><span class="m POST">POST</span><span class="t">Add the lines<span class="tag">one call per line</span></span><span class="chev" aria-hidden="true"></span><span class="ep">{base}/salesQuotes({quoteId})/salesQuoteLines</span></summary>
+      <div class="detail">
+        <p>The BC item number comes from the data model, never from the SKU directly:</p>
+        <ul>
+          <li><b>Purchase line:</b> <code>catalog.product_erp_refs</code> where <code>source_system = 'BC'</code> and <code>role = 'sale'</code>.</li>
+          <li><b>Calibration line:</b> <code>catalog.calibration_services.bc_item_no</code> for the service the calibration rules chose.</li>
+          <li><b>Freight and handling:</b> a G/L account line. Finance provides the account numbers.</li>
+        </ul>
+        <div><h4>Purchase line</h4><pre>{ "lineType": "Item", "lineObjectNumber": "MEG-1000", "quantity": 2, "unitPrice": 725.00 }</pre></div>
+        <div><h4>Calibration line</h4><pre>{ "lineType": "Item", "lineObjectNumber": "CAL-ISO-HV", "quantity": 2, "unitPrice": 190.00,
+  "description": "ISO 17025 calibration for MEG-1000" }</pre></div>
+        <div><h4>Handling line</h4><pre>{ "lineType": "Account", "lineObjectNumber": "{handling G/L account}", "quantity": 1, "unitPrice": 60.00,
+  "description": "Handling" }</pre></div>
+        <div><h4>Response, per line <span class="status">201 Created</span></h4><pre>{
+  "id": "e8a4c2b0-1a6e-ef11-9f88-6045bdc8c1a7",
+  "sequence": 10000,
+  "lineType": "Item",
+  "lineObjectNumber": "MEG-1000",
+  "description": "Insulation tester",
+  "quantity": 2,
+  "unitPrice": 725,
+  "amountExcludingTax": 1450,
+  "totalTaxAmount": 72.5,
+  "amountIncludingTax": 1522.5
+}</pre></div>
+        <p>Send the storefront's <code>unitPrice</code>: the customer has already paid that price, so Business Central must not re-price the line. A SKU with no row in <code>product_erp_refs</code> is a permanent error; the job stops and alerts instead of guessing.</p>
+      </div></details></li>
+  <li class="node"><div class="dot">S6</div>
+    <details class="card"><summary><span class="m GET">GET</span><span class="t">Read totals and compare</span><span class="chev" aria-hidden="true"></span><span class="ep">{base}/salesQuotes({quoteId})?$expand=salesQuoteLines</span></summary>
+      <div class="detail">
+        <div><h4>Response <span class="status">200 OK</span></h4><pre>{
+  "id": "c3b1d9f4-1a6e-ef11-9f88-6045bdc8c1a7",
+  "number": "SQ-1042",
+  "externalDocumentNumber": "ORD-CA-000123",
+  "totalAmountExcludingTax": 1890,
+  "totalTaxAmount": 94.5,
+  "totalAmountIncludingTax": 1984.5,
+  "status": "Draft",
+  "salesQuoteLines": [ … ]
+}</pre></div>
+        <p>Compare <code>totalAmountIncludingTax</code> with the payload's <code>total</code>. A difference of more than one cent is not a failed sync, but it is flagged for sales review: usually a BC tax area that doesn't match Avalara.</p>
+      </div></details></li>
+  <li class="node"><div class="dot">S7</div>
+    <details class="card"><summary><span class="m APP">SQL</span><span class="t">Mark as sent</span><span class="chev" aria-hidden="true"></span><span class="ep">integration_outbox · orders</span></summary>
+      <div class="detail">
+        <div><h4>Updates, in one transaction</h4><pre>UPDATE commerce.integration_outbox
+SET    status = 'sent', last_error = NULL
+WHERE  id = $1;
+
+UPDATE commerce.orders
+SET    bc_document_no = 'SQ-1042',          -- proposed column
+       bc_document_id = 'c3b1d9f4-…',       -- proposed column
+       bc_synced_at   = now(),              -- proposed column
+       needs_review   = false               -- proposed column, true if S6 mismatched
+WHERE  id = $2;</pre></div>
+        <p>The BC number on the order lets the CMS Orders module link each order to its quote in Business Central.</p>
+      </div></details></li>
+</ol>
+
+<!-- =============== 5. DATA =============== -->
+<div class="section-head" id="data"><h2><span>5</span>Data model touchpoints</h2><p>From the jmtest.ca data model, draft 2026-11-02</p></div>
+<div class="table-wrap"><table>
+  <thead><tr><th>Table</th><th>Role in this flow</th><th>Written by</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">commerce.cart_items</td><td>Cart lines with <code>line_type</code> and <code>parent_line_id</code> for calibration add-ons</td><td>apps/web</td></tr>
+    <tr><td class="mono">commerce.orders</td><td>The paid order</td><td>apps/web, Stripe webhook</td></tr>
+    <tr><td class="mono">commerce.order_items</td><td>Paid lines: purchase and calibration only</td><td>apps/web, Stripe webhook</td></tr>
+    <tr><td class="mono">commerce.integration_outbox</td><td><code>order.confirmed</code> row; unique on <code>(topic, aggregate_id)</code>; alert at 5 attempts</td><td>apps/web (insert), outbox job (update), CMS Retry</td></tr>
+    <tr><td class="mono">catalog.product_erp_refs</td><td>SKU to BC item number, <code>role = 'sale'</code></td><td>JMTS IT mapping</td></tr>
+    <tr><td class="mono">catalog.calibration_services</td><td>BC item number for each calibration service</td><td>erp-sync</td></tr>
+    <tr class="prop"><td class="mono">integration_outbox topic 'order.tax_commit'</td><td>Retries recording the tax in Avalara after payment <span class="tag prop">proposed</span></td><td>apps/web (insert), outbox job</td></tr>
+    <tr class="prop"><td class="mono">orders.bc_document_no</td><td>BC quote number, e.g. SQ-1042 <span class="tag prop">proposed</span></td><td>outbox job</td></tr>
+    <tr class="prop"><td class="mono">orders.bc_document_id</td><td>BC quote GUID <span class="tag prop">proposed</span></td><td>outbox job</td></tr>
+    <tr class="prop"><td class="mono">orders.bc_synced_at</td><td>When the sync finished <span class="tag prop">proposed</span></td><td>outbox job</td></tr>
+    <tr class="prop"><td class="mono">orders.needs_review</td><td>True when BC total differs from the amount paid <span class="tag prop">proposed</span></td><td>outbox job, cleared in CMS</td></tr>
+  </tbody>
+</table></div>
+<p class="prose">The four proposed columns are not in the data model yet. They are what the CMS Orders module needs to show sync state and link to Business Central without reading the outbox table.</p>
+
+<!-- =============== 6. DECISIONS =============== -->
+<div class="section-head" id="decisions"><h2><span>6</span>Open decisions</h2><p>Need an answer before build</p></div>
+<div class="decisions">
+  <div class="decision">
+    <h3>Sales Quote or Sales Order?</h3>
+    <p>The data model sends <code>order.confirmed</code> as a Sales Quote. But the customer has paid, so it is a confirmed sale, and a quote has to be converted by hand.</p>
+    <p class="rec"><b>Suggest</b>Create a Sales Order with <code>POST /salesOrders</code> (same shape), or call <code>makeOrder</code> right after S6.</p>
+  </div>
+  <div class="decision">
+    <h3>Whose tax wins?</h3>
+    <p>Avalara calculates what the customer pays; Business Central calculates its own tax on the quote. If they differ, the BC document won't match the Stripe charge.</p>
+    <p class="rec"><b>Suggest</b>Treat Avalara as the source and line up BC tax areas, or use the Avalara connector for Business Central. Keep the S6 check either way.</p>
+  </div>
+  <div class="decision">
+    <h3>Checkout when Avalara is down</h3>
+    <p>Without an AvaTax estimate the total can’t be shown correctly. Either checkout pauses, or it uses a stored rate per branch and corrects it later.</p>
+    <p class="rec"><b>Suggest</b>Pause checkout with a clear message. Outages are rare and short, and a wrong tax charge is harder to fix than a short delay.</p>
+  </div>
+  <div class="decision">
+    <h3>Tax codes</h3>
+    <p>Products, calibration services, freight and handling each need the right Avalara tax code, or taxability is decided wrongly.</p>
+    <p class="rec"><b>Suggest</b>Finance confirms the codes; store the product code per SKU in the catalog so the storefront sends it on every line.</p>
+  </div>
+  <div class="decision">
+    <h3>Pickup location in BC</h3>
+    <p>Edmonton, Richmond and Calgary need to land somewhere the warehouse looks.</p>
+    <p class="rec"><b>Suggest</b>Map each to a BC location code and a PICKUP shipment method. Confirm with the BC admin which fields the warehouse uses.</p>
+  </div>
+  <div class="decision">
+    <h3>Recording the Stripe payment</h3>
+    <p>The payment is taken in Stripe, but Business Central doesn't know it was paid.</p>
+    <p class="rec"><b>Suggest</b>Agree with finance how Stripe payouts are matched: a cash receipt per order, or a daily Stripe payout entry.</p>
+  </div>
+</div>
+
+<!-- =============== 7. TAX =============== -->
+<div class="section-head" id="tax"><h2><span>7</span>How tax is calculated</h2><p>Avalara AvaTax, in real time at checkout</p></div>
+<p class="prose">The storefront never calculates tax itself. At checkout it sends the order to AvaTax, and AvaTax works out the tax for every line and every jurisdiction in one call, usually in well under a second. The amount AvaTax returns is the amount the customer pays, so Avalara is the source of truth for tax on jmtest.ca orders.</p>
+
+<h3 style="font-size:20px;margin:28px 0 12px">What AvaTax does with each request</h3>
+<ol class="pipeline">
+  <li><span class="pn">1</span><h4>Takes the inputs</h4><p>Addresses, date, customer, and the line items, with freight and handling as their own lines.</p><p class="ours">jmtest.ca: the pickup branch address, the order date, the customer’s email as the customer code, and every cart line.</p></li>
+  <li><span class="pn">2</span><h4>Validates the location</h4><p>Checks the address well enough to find the right taxing jurisdiction.</p><p class="ours">jmtest.ca: the three branch addresses are fixed, so they validate the same way every time.</p></li>
+  <li><span class="pn">3</span><h4>Applies sourcing rules</h4><p>Decides where the sale legally takes place for tax purposes.</p><p class="ours">jmtest.ca: pickup means the sale happens at the branch, so the branch’s province decides the tax, not the customer’s home address.</p></li>
+  <li><span class="pn">4</span><h4>Decides taxability per line</h4><p>Uses each line’s tax code and local rules to decide whether, and how, it is taxed.</p><p class="ours">jmtest.ca: products, calibration services, freight and handling each get their own tax code.</p></li>
+  <li><span class="pn">5</span><h4>Checks exemptions</h4><p>Removes tax the buyer doesn’t owe, when exemption details are sent.</p><p class="ours">jmtest.ca: only for customers with a certificate on file in Avalara. Everyone else is taxed normally.</p></li>
+  <li><span class="pn">6</span><h4>Calculates and returns</h4><p>Applies the rate for each jurisdiction and tax type, and returns a breakdown. In Canada that covers GST, HST, PST and QST.</p><p class="ours">jmtest.ca: the storefront shows the total tax; the breakdown is kept on the order.</p></li>
+  <li><span class="pn">7</span><h4>Records the decision</h4><p>Saves the transaction for reporting and audit, if the request asks it to.</p><p class="ours">jmtest.ca: only after payment succeeds. Checkout estimates are never recorded.</p></li>
+</ol>
+
+<h3 style="font-size:20px;margin:36px 0 8px">When the storefront calls AvaTax</h3>
+<p class="prose">Two kinds of call, at two moments. The difference is whether AvaTax keeps a record.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Moment</th><th>Call</th><th>Type</th><th>Recorded in Avalara?</th></tr></thead>
+  <tbody>
+    <tr><td>Cart or pickup location changes at checkout</td><td class="mono">POST /api/v2/transactions/create</td><td class="mono">SalesOrder</td><td>No. An estimate to show the customer; call it as often as needed.</td></tr>
+    <tr><td>Stripe confirms the payment</td><td class="mono">POST /api/v2/transactions/createoradjust</td><td class="mono">SalesInvoice, commit: true</td><td>Yes. This is the record Avalara uses for filing and audit.</td></tr>
+  </tbody>
+</table></div>
+<p class="prose">The recorded call uses the order number as its <code>code</code>. <code>createoradjust</code> updates the existing transaction if one with that code already exists, so a repeated Stripe webhook or a retry never records the same sale twice.</p>
+
+<h3 style="font-size:20px;margin:36px 0 8px">Which tax applies at each pickup branch</h3>
+<p class="prose">Because the sale happens at the branch, the branch’s province sets the tax. AvaTax applies the real rates; the figures below are the current general rates, shown so the totals make sense.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Pickup branch</th><th>Province</th><th>Taxes on a taxable product</th></tr></thead>
+  <tbody>
+    <tr><td>Edmonton</td><td>Alberta</td><td>GST 5%. Alberta has no provincial sales tax.</td></tr>
+    <tr><td>Calgary</td><td>Alberta</td><td>GST 5%.</td></tr>
+    <tr><td>Richmond</td><td>British Columbia</td><td>GST 5% + BC PST 7%.</td></tr>
+  </tbody>
+</table></div>
+<p class="prose">The same cart therefore costs more in Richmond than in Edmonton. Changing the pickup location at checkout must trigger a new AvaTax estimate.</p>
+
+<div class="callout"><b>Why freight and handling are separate lines</b>Their taxability can differ from the products they come with, and it varies by province. Sent as their own lines with their own tax codes, AvaTax taxes each one correctly. Folded into a product price, they would be taxed as if they were the product.</div>
+
+<h3 style="font-size:20px;margin:36px 0 8px">Example: estimate at checkout</h3>
+<div class="detail" style="padding:0">
+  <div><h4>Request · POST https://rest.avatax.com/api/v2/transactions/create</h4><pre>{
+  "type": "SalesOrder",
+  "companyCode": "{jmtest.ca company code in Avalara}",
+  "date": "2026-11-12",
+  "customerCode": "dana@acmetesting.ca",
+  "currencyCode": "CAD",
+  "addresses": {
+    "singleLocation": {
+      "line1": "{Edmonton branch street address}",
+      "city": "Edmonton",
+      "region": "AB",
+      "country": "CA",
+      "postalCode": "{branch postal code}"
+    }
+  },
+  "lines": [
+    { "number": "1", "itemCode": "MEG-1000",   "description": "Insulation tester",
+      "quantity": 2, "amount": 1450.00, "taxCode": "{product tax code}" },
+    { "number": "2", "itemCode": "CAL-ISO-HV", "description": "ISO 17025 calibration",
+      "quantity": 2, "amount": 380.00,  "taxCode": "{calibration service tax code}" },
+    { "number": "3", "itemCode": "HANDLING",   "description": "Handling",
+      "quantity": 1, "amount": 60.00,   "taxCode": "{handling tax code}" }
+  ],
+  "commit": false
+}</pre></div>
+  <div><h4>Response <span class="status">201 Created</span></h4><pre>{
+  "type": "SalesOrder",
+  "status": "Temporary",
+  "currencyCode": "CAD",
+  "totalAmount": 1890.00,
+  "totalTax": 94.50,
+  "lines": [
+    { "lineNumber": "1", "lineAmount": 1450.00, "tax": 72.50,
+      "details": [ { "country": "CA", "region": "AB", "jurisName": "CANADA",
+                     "taxName": "GST", "rate": 0.05, "tax": 72.50 } ] },
+    { "lineNumber": "2", "lineAmount": 380.00, "tax": 19.00,
+      "details": [ { "jurisName": "CANADA", "taxName": "GST", "rate": 0.05, "tax": 19.00 } ] },
+    { "lineNumber": "3", "lineAmount": 60.00, "tax": 3.00,
+      "details": [ { "jurisName": "CANADA", "taxName": "GST", "rate": 0.05, "tax": 3.00 } ] }
+  ]
+}</pre></div>
+  <p><code>amount</code> is the line total (quantity × unit price), not the unit price. <code>singleLocation</code> tells AvaTax the sale happens at one place, which is how a pickup order is sent. Tax codes come from the jmtest.ca Avalara account; confirm them with finance before go-live.</p>
+</div>
+
+<h3 style="font-size:20px;margin:36px 0 8px">Example: record after payment</h3>
+<div class="detail" style="padding:0">
+  <div><h4>Request · POST https://rest.avatax.com/api/v2/transactions/createoradjust</h4><pre>{
+  "createTransactionModel": {
+    "type": "SalesInvoice",
+    "code": "ORD-CA-000123",
+    "companyCode": "{jmtest.ca company code in Avalara}",
+    "date": "2026-11-12",
+    "customerCode": "dana@acmetesting.ca",
+    "currencyCode": "CAD",
+    "addresses": { "singleLocation": { … same as the estimate … } },
+    "lines": [ … same lines as the estimate … ],
+    "commit": true
+  }
+}</pre></div>
+  <div><h4>Response <span class="status">201 Created</span></h4><pre>{
+  "code": "ORD-CA-000123",
+  "type": "SalesInvoice",
+  "status": "Committed",
+  "totalAmount": 1890.00,
+  "totalTax": 94.50
+}</pre></div>
+  <p>Send exactly the lines and amounts the customer paid for. If the recorded <code>totalTax</code> differs from the estimate the customer saw, flag the order for review rather than charging the difference.</p>
+</div>
+
+<h3 style="font-size:20px;margin:36px 0 8px">Exempt customers</h3>
+<p class="prose">Some business customers don’t pay certain taxes. Their exemption certificates live in Avalara, linked to their <code>customerCode</code>, so the same customer code must be used on every call. When AvaTax finds a valid certificate, it removes the exempt tax in step 5 and shows the reason in the response. The storefront doesn’t decide exemptions itself.</p>
+
+<h3 style="font-size:20px;margin:36px 0 8px">If Avalara is unavailable</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Call fails</th><th>What happens</th></tr></thead>
+  <tbody>
+    <tr><td>The checkout estimate</td><td>The customer can’t be shown a correct total, so payment isn’t taken. Checkout shows a “try again” message. Whether to fall back to a stored rate instead is an open decision, §6.</td></tr>
+    <tr><td>The record after payment</td><td>The order is already paid and saved, so nothing is lost. The call is retried the same way as the Business Central sync, through an outbox row with the proposed topic <code>order.tax_commit</code>.</td></tr>
+  </tbody>
+</table></div>
+
+<div class="callout"><b>Avalara and Business Central must agree</b>The customer pays the AvaTax amount. Business Central calculates tax again on the quote (§2, step S6), and the two can differ if the BC tax setup doesn’t match. That check flags any order where they disagree.</div>
+
+<footer>JMtest integration docs · Flow 2 · Orders. Business Central API v2.0. Example values are illustrative; proposed columns are not migrated.</footer>
+</div>
+
+<script>
+const toggle = document.getElementById("expand");
+toggle.addEventListener("click", () => {
+  const open = toggle.textContent === "Open all steps";
+  document.querySelectorAll("details.card").forEach(d => (d.open = open));
+  toggle.textContent = open ? "Close all steps" : "Open all steps";
+});
+</script>
+</body>
+</html>

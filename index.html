@@ -141,9 +141,18 @@ const docs = [
     title: "Sales quote creation",
     area: "Sales",
     system: "Business Central",
-    description: "Create a quote from the storefront, add lines, send it, and convert it to a sales order. 9 calls with a flow diagram and response examples.",
+    description: "A storefront quote request saved first, synced to Business Central in the background, then sent and converted to an order. Includes retries and failure alerts.",
     href: "sales-quote-creation-flow.html",
-    updated: "2026-11-11",
+    updated: "2026-11-12",
+    status: "live"
+  },
+  {
+    title: "Orders",
+    area: "Commerce",
+    system: "Stripe · Avalara · Business Central",
+    description: "Paid checkout to Business Central through the outbox: retries, rollback, and how the sales team is told when a sync fails.",
+    href: "orders.html",
+    updated: "2026-11-12",
     status: "live"
   }
 ];
