@@ -46,7 +46,7 @@ h1{font-size:44px;line-height:1.08;font-weight:700;margin:0;letter-spacing:-.01e
 .section-head h2 span{display:inline-block;background:var(--yellow);font-size:16px;padding:2px 8px;margin-right:10px;vertical-align:5px}
 .section-head p{margin:0;color:var(--muted);font-size:15px}
 .prose{max-width:68ch;margin:0 0 16px}
-.prose code,td code,.detail p code,.detail li code,.decision code{font-family:var(--mono);font-size:14px;background:var(--panel);padding:0 4px}
+.prose code,td code,.detail p code,.detail li code,.decision code,.callout code{font-family:var(--mono);font-size:14px;background:var(--panel);padding:0 4px}
 
 .diagram{border:1px solid var(--line);padding:20px 12px 12px;margin-bottom:12px}
 .diagram svg{display:block;width:100%;height:auto;margin:0 auto}
@@ -69,8 +69,10 @@ h1{font-size:44px;line-height:1.08;font-weight:700;margin:0;letter-spacing:-.01e
 .flow::before{content:"";position:absolute;left:21px;top:28px;bottom:28px;width:2px;background:var(--line)}
 .node{position:relative;display:grid;grid-template-columns:44px 1fr;gap:16px;padding:10px 0}
 .dot{width:44px;height:44px;border-radius:50%;background:var(--yellow);color:var(--on-yellow);display:grid;place-content:center;font-weight:700;font-size:15px;position:relative;z-index:1}
+.dot.opt{background:var(--bg);color:var(--ink);border:2px dashed var(--muted)}
 details.card{border:1px solid var(--line);background:var(--bg)}
 details.card[open]{border-color:var(--ink)}
+details.card.opt{border-style:dashed}
 summary{list-style:none;cursor:pointer;padding:12px 16px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center}
 summary::-webkit-details-marker{display:none}
 summary:focus-visible,.btn:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
@@ -82,9 +84,11 @@ summary:focus-visible,.btn:focus-visible{outline:3px solid var(--yellow);outline
 details[open] .chev{transform:rotate(-135deg);margin-bottom:-2px}
 .ep{grid-column:2 / 4;font-family:var(--mono);font-size:13px;color:var(--muted);overflow-wrap:anywhere}
 .tag{font-size:13px;font-weight:600;background:var(--yellow);color:var(--on-yellow);padding:1px 8px;margin-left:8px;vertical-align:2px}
+.tag.quiet{background:none;color:var(--muted);border:1px solid var(--line);font-weight:500}
 .tag.prop{background:var(--amber-soft);color:var(--amber)}
 .detail{padding:4px 16px 16px;display:grid;gap:14px}
 .detail h4{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.status{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--green);border:1px solid var(--green);padding:0 6px}
 .detail pre{margin:0;font-family:var(--mono);font-size:13px;line-height:1.55;background:var(--panel);border:1px solid var(--line);padding:10px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
 .detail p{margin:0;font-size:16px;max-width:66ch}
 .detail ul{margin:0;padding-left:20px;font-size:16px;max-width:66ch}
@@ -130,35 +134,36 @@ footer{margin-top:64px;border-top:1px solid var(--line);padding-top:16px;color:v
 
 <header>
   <p class="brand"><b>JMtest</b>Flow 3 · jmtest.ca</p>
-  <h1>Rental items: from Business Central to the sales team</h1>
-  <p class="lede">Business Central decides what can be rented. The ERP-Sync Job copies that decision and the rental rates into the Consolidated Database (CDB). On the product page, rental items show a rental form; each request is saved in the CDB and a Klaviyo event emails the sales team.</p>
+  <h1>Rental items: from a rental request to a rental order</h1>
+  <p class="lede">An item is rentable when it belongs to a rental group in Business Central. The ERP-Sync Job copies that into the Consolidated Database (CDB). On a rental item's product page the customer always sees the rental form. Each request is saved in the CDB, the sales team gets a Klaviyo email alert, and the outbox job creates a rental Sales Quote in Business Central. The sales team then contacts the customer and converts the quote into a rental order.</p>
 </header>
 
 <dl class="facts">
-  <div><dt>Source of truth</dt><dd>Business Central</dd></div>
-  <div><dt>Synced by</dt><dd>ERP-Sync Job</dd></div>
-  <div><dt>Stored in</dt><dd>Consolidated Database</dd></div>
-  <div><dt>Where customers ask</dt><dd>Rental form on the product page</dd></div>
-  <div><dt>Shown for</dt><dd>Items with rental_enabled</dd></div>
-  <div><dt>Alert</dt><dd>Klaviyo → sales team email</dd></div>
+  <div><dt>Rentable when</dt><dd>Item is in a BC rental group</dd></div>
+  <div><dt>Rental form</dt><dd>Always shown on rental items</dd></div>
+  <div><dt>Availability</dt><dd>Not shown to the customer</dd></div>
+  <div><dt>Saved in</dt><dd>CDB, with an outbox row</dd></div>
+  <div><dt>BC document</dt><dd>Sales Quote, marked as rental</dd></div>
+  <div><dt>Becomes an order</dt><dd>When sales converts the quote</dd></div>
 </dl>
 
 <ul class="toc">
   <li><a href="#overview"><span>1</span>Whole flow</a></li>
-  <li><a href="#fields"><span>2</span>Rental fields</a></li>
+  <li><a href="#fields"><span>2</span>Rental group</a></li>
   <li><a href="#steps"><span>3</span>Step by step</a></li>
-  <li><a href="#data"><span>4</span>Data model</a></li>
-  <li><a href="#decisions"><span>5</span>Open decisions</a></li>
+  <li><a href="#failure"><span>4</span>When sync fails</a></li>
+  <li><a href="#data"><span>5</span>Data model</a></li>
+  <li><a href="#decisions"><span>6</span>Open decisions</a></li>
 </ul>
 
 <!-- =============== 1. WHOLE FLOW =============== -->
-<div class="section-head" id="overview"><h2><span>1</span>The whole flow</h2><p>Two paths that meet in the CDB</p></div>
-<p class="prose">The top path runs in the background: Business Central marks items as rentable and sets their rates, and the ERP-Sync Job writes those fields into the CDB. The bottom path starts with the customer: on a rental item's product page they fill in the rental form, the request is saved in the CDB, and a Klaviyo event sends the sales team an email alert. Nothing is paid online; the sales team follows up.</p>
+<div class="section-head" id="overview"><h2><span>1</span>The whole flow</h2><p>From the rental group to a rental order</p></div>
+<p class="prose">In the background, Business Central puts items in a rental group and the ERP-Sync Job marks them as rentable in the CDB. On a rental item's product page the customer always sees the rental form, whatever the availability. When they submit it, the request and an outbox row are saved together, and Klaviyo emails the sales team. The outbox job then creates a Sales Quote in Business Central, marked as a rental. The sales team contacts the customer and converts the quote into a rental order. Nothing is paid online.</p>
 
 <div class="diagram">
-<svg viewBox="0 0 960 384" role="img" aria-labelledby="d1t d1d" font-family="Barlow, Segoe UI, sans-serif">
+<svg viewBox="0 0 960 640" role="img" aria-labelledby="d1t d1d" font-family="Barlow, Segoe UI, sans-serif">
   <title id="d1t">Rental items flow</title>
-  <desc id="d1d">Business Central decides what is rentable. The ERP-Sync Job copies the rental fields and rental rates into the Consolidated Database, which holds the catalog and rental records. A storefront customer fills in the rental form on the product page, shown for rental items only. The form saves the request in the Consolidated Database and sends a rental item event to Klaviyo, which emails the sales team. The rental fields in the database are rental_enabled, rental_units_available_ca and catalog.product_rental_rates, managed in Business Central and synced by the ERP-Sync Job.</desc>
+  <desc id="d1d">Business Central puts the item in a rental group. The ERP-Sync Job sets rental_enabled and copies rental rates into the Consolidated Database. A storefront customer sees the rental form on every rental item, with no availability shown. Submitting it saves the rental request and an outbox row in the Consolidated Database, and sends a Klaviyo event that emails the sales team. The outbox job picks up the row and creates a Sales Quote in Business Central marked as a rental. The sales team contacts the customer and converts the quote into a rental Sales Order in Business Central.</desc>
   <defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#151515"/></marker></defs>
 
   <g fill="none" stroke="#151515" stroke-width="1.5">
@@ -166,37 +171,49 @@ footer{margin-top:64px;border-top:1px solid var(--line);padding-top:16px;color:v
     <path d="M420 52H458" marker-end="url(#a1)"/>
     <path d="M200 198H238" marker-end="url(#a1)"/>
     <path d="M420 198H458" marker-end="url(#a1)"/>
-    <path d="M330 230V332H458" marker-end="url(#a1)"/>
+    <path d="M550 230V298" marker-end="url(#a1)"/>
     <path d="M640 332H678" marker-end="url(#a1)"/>
+    <path d="M330 230V462H458" marker-end="url(#a1)"/>
+    <path d="M640 462H678" marker-end="url(#a1)"/>
+    <path d="M810 364V428" marker-end="url(#a1)"/>
+    <path d="M810 494V556" marker-end="url(#a1)"/>
   </g>
-  <text x="439" y="189" text-anchor="middle" font-size="12" font-weight="600" fill="#5E6166">save</text>
-  <text x="400" y="323" text-anchor="middle" font-size="12" font-weight="600" fill="#5E6166">rental event</text>
+  <g font-size="12" font-weight="600" fill="#5E6166">
+    <text x="439" y="189" text-anchor="middle">submit</text>
+    <text x="400" y="453" text-anchor="middle">rental event</text>
+    <text x="562" y="270">pending row</text>
+    <text x="822" y="400">quote in BC</text>
+    <text x="822" y="530">convert</text>
+  </g>
 
   <!-- row 1: sync -->
   <rect x="20" y="20" width="180" height="64" fill="#fff" stroke="#5E6166" stroke-width="1.5"/>
   <text x="110" y="46" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Business Central</text>
-  <text x="110" y="66" text-anchor="middle" font-size="13" fill="#5E6166">decides what is rentable</text>
+  <text x="110" y="66" text-anchor="middle" font-size="13" fill="#5E6166">item in a rental group</text>
 
   <rect x="240" y="20" width="180" height="64" fill="#FFE828" stroke="#151515" stroke-width="1.5"/>
   <text x="330" y="46" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">ERP-Sync Job</text>
-  <text x="330" y="66" text-anchor="middle" font-size="13" fill="#151515">fields + rental rates</text>
+  <text x="330" y="66" text-anchor="middle" font-size="13" fill="#151515">rental flag + rates</text>
 
   <!-- CDB -->
   <rect x="460" y="20" width="180" height="210" fill="#151515"/>
-  <text x="550" y="104" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">Consolidated</text>
-  <text x="550" y="125" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">Database</text>
-  <text x="550" y="148" text-anchor="middle" font-size="13" fill="#D9D9D4">catalog + rental records</text>
+  <text x="550" y="92" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">Consolidated</text>
+  <text x="550" y="113" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">Database</text>
+  <text x="550" y="136" text-anchor="middle" font-size="13" fill="#D9D9D4">catalog + rental records</text>
+  <text x="550" y="170" text-anchor="middle" font-size="12" font-family="JetBrains Mono, monospace" fill="#FFE828">rental request</text>
+  <text x="550" y="187" text-anchor="middle" font-size="12" font-family="JetBrains Mono, monospace" fill="#FFE828">+ integration_outbox</text>
 
   <!-- rental fields panel -->
   <rect x="680" y="20" width="260" height="210" fill="#fff" stroke="#E2E2DC" stroke-width="1.5"/>
   <text x="700" y="50" font-size="16" font-weight="700" fill="#151515">Rental fields in the CDB</text>
   <g font-size="13" font-weight="700" font-family="JetBrains Mono, monospace" fill="#8A5A00">
     <text x="700" y="84">rental_enabled</text>
-    <text x="700" y="112">rental_units_available_ca</text>
     <text x="700" y="140">catalog.product_rental_rates</text>
   </g>
-  <text x="700" y="178" font-size="13" fill="#5E6166">Managed in BC, synced by</text>
-  <text x="700" y="196" font-size="13" fill="#5E6166">the ERP-Sync Job</text>
+  <text x="700" y="104" font-size="13" fill="#5E6166">true when the item is in a rental group</text>
+  <text x="700" y="160" font-size="13" fill="#5E6166">rates per product</text>
+  <text x="700" y="196" font-size="13" fill="#5E6166">Managed in BC, synced by</text>
+  <text x="700" y="214" font-size="13" fill="#5E6166">the ERP-Sync Job</text>
 
   <!-- row 2: customer -->
   <rect x="20" y="166" width="180" height="64" fill="#fff" stroke="#151515" stroke-width="1.5"/>
@@ -205,147 +222,269 @@ footer{margin-top:64px;border-top:1px solid var(--line);padding-top:16px;color:v
 
   <rect x="240" y="166" width="180" height="64" fill="#fff" stroke="#151515" stroke-width="1.5"/>
   <text x="330" y="192" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Rental form</text>
-  <text x="330" y="212" text-anchor="middle" font-size="13" fill="#5E6166">PDP, rental items only</text>
+  <text x="330" y="212" text-anchor="middle" font-size="13" fill="#5E6166">every rental item, always</text>
 
-  <!-- row 3: alert -->
-  <rect x="460" y="300" width="180" height="64" fill="#FDF0EE" stroke="#B42318" stroke-width="1.5"/>
-  <text x="550" y="326" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Klaviyo</text>
-  <text x="550" y="346" text-anchor="middle" font-size="13" fill="#5E6166">rental item event</text>
+  <!-- row 3: outbox -->
+  <rect x="460" y="300" width="180" height="64" fill="#FFE828" stroke="#151515" stroke-width="1.5"/>
+  <text x="550" y="326" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Outbox job</text>
+  <text x="550" y="346" text-anchor="middle" font-size="12" font-family="JetBrains Mono, monospace" fill="#151515">rental.requested</text>
 
-  <rect x="680" y="300" width="180" height="64" fill="#FDF0EE" stroke="#B42318" stroke-width="1.5"/>
-  <text x="770" y="326" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Sales team</text>
-  <text x="770" y="346" text-anchor="middle" font-size="13" fill="#5E6166">email alert</text>
+  <rect x="680" y="300" width="260" height="64" fill="#fff" stroke="#5E6166" stroke-width="1.5"/>
+  <text x="810" y="326" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">BC Sales Quote</text>
+  <text x="810" y="346" text-anchor="middle" font-size="13" fill="#5E6166">marked as a rental quote</text>
+
+  <!-- row 4: alert + sales -->
+  <rect x="460" y="430" width="180" height="64" fill="#FDF0EE" stroke="#B42318" stroke-width="1.5"/>
+  <text x="550" y="456" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Klaviyo</text>
+  <text x="550" y="476" text-anchor="middle" font-size="13" fill="#5E6166">alert email</text>
+
+  <rect x="680" y="430" width="260" height="64" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="810" y="456" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Sales team</text>
+  <text x="810" y="476" text-anchor="middle" font-size="13" fill="#5E6166">contacts the customer</text>
+
+  <!-- row 5: order -->
+  <rect x="680" y="558" width="260" height="64" fill="#fff" stroke="#5E6166" stroke-width="2"/>
+  <text x="810" y="584" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">BC Sales Order</text>
+  <text x="810" y="604" text-anchor="middle" font-size="13" fill="#5E6166">the real rental order</text>
 </svg>
 </div>
 <div class="legend">
   <span><i class="sw ext"></i>Business Central</span>
   <span><i class="sw yel"></i>Background job</span>
-  <span><i class="sw"></i>apps/web</span>
+  <span><i class="sw"></i>Customer, apps/web, sales team</span>
   <span><i class="sw dark"></i>Consolidated Database</span>
   <span><i class="sw red"></i>Notification</span>
 </div>
-<div class="callout"><b>Business Central owns the rental fields.</b>The storefront and the CMS only read them. To make an item rentable, change its rate or its units available, change it in Business Central and let the next ERP-Sync Job run copy it across.</div>
+<div class="callout"><b>The alert email means “new request”, not “quote ready”.</b>Klaviyo sends it as soon as the request is saved. The Sales Quote appears in Business Central when the outbox job runs, usually within a few minutes. If the job can't create it, a separate alert tells the team (§4).</div>
 
 <!-- =============== 2. FIELDS =============== -->
-<div class="section-head" id="fields"><h2><span>2</span>Rental fields in the CDB</h2><p>Managed in BC, synced by the ERP-Sync Job</p></div>
+<div class="section-head" id="fields"><h2><span>2</span>Rental group and rental fields</h2><p>Managed in BC, synced by the ERP-Sync Job</p></div>
+<p class="prose">To make an item rentable, connect it to a rental group in Business Central. On its next run the ERP-Sync Job sees the group and sets <code>rental_enabled</code> to true. Remove the item from the group and the job sets it back to false, and the rental form disappears from that product page. Nobody changes these fields on the storefront or in the CMS.</p>
 <div class="table-wrap"><table>
-  <thead><tr><th>Field</th><th>What it controls on the storefront</th><th>Written by</th></tr></thead>
+  <thead><tr><th>Field</th><th>What it controls</th><th>Written by</th></tr></thead>
   <tbody>
-    <tr><td class="mono">rental_enabled</td><td>Whether the product page shows the rental form. When it is false, the form is not shown.</td><td>ERP-Sync Job</td></tr>
-    <tr><td class="mono">rental_units_available_ca</td><td>How many units can be rented in Canada. What the page does when this is 0 is still to decide (§5).</td><td>ERP-Sync Job</td></tr>
-    <tr><td class="mono">catalog.product_rental_rates</td><td>The rental rates for each product, shown next to the form.</td><td>ERP-Sync Job</td></tr>
+    <tr><td class="mono">rental_enabled</td><td>True when the item is in a BC rental group. When true, the product page always shows the rental form.</td><td>ERP-Sync Job</td></tr>
+    <tr><td class="mono">catalog.product_rental_rates</td><td>The rental rates for each product, shown next to the form and used on the quote lines.</td><td>ERP-Sync Job</td></tr>
   </tbody>
 </table></div>
+<div class="callout"><b>Availability is never shown to the customer.</b>The form doesn't check how many units are free and doesn't say whether the item is available. The sales team checks that in Business Central before they contact the customer.</div>
 
 <!-- =============== 3. STEPS =============== -->
 <div class="section-head" id="steps"><h2><span>3</span>Step by step</h2><button class="btn" type="button" id="expand">Open all steps</button></div>
+<p class="prose"><code>{base}</code> is <code>https://api.businesscentral.dynamics.com/v2.0/{tenantId}/{environment}/api/v2.0/companies({companyId})</code>. Every BC call sends <code>Authorization: Bearer {access_token}</code>. Values in the examples are illustrative.</p>
 
 <div class="phase-head"><h3>Sync from Business Central</h3><p>ERP-Sync Job, in the background</p></div>
 <ol class="flow">
   <li class="node"><div class="dot">E1</div>
-    <details class="card"><summary><span class="m APP">BC</span><span class="t">Business Central decides what is rentable</span><span class="chev" aria-hidden="true"></span><span class="ep">rental flag · units available in Canada · rental rates</span></summary>
+    <details class="card"><summary><span class="m APP">BC</span><span class="t">Connect the item to a rental group</span><span class="chev" aria-hidden="true"></span><span class="ep">done by a person in Business Central</span></summary>
       <div class="detail">
-        <p>The rental flag, the units available in Canada and the rental rates are all set on the item in Business Central. Nobody edits them on the storefront or in the CMS.</p>
-        <p>Which Business Central fields or price lists hold these values is still to confirm with the BC admin (§5).</p>
+        <p>Being in a rental group is what marks an item as rentable. Its rental rates are kept in Business Central too.</p>
+        <p>Which Business Central field holds the rental group is still to confirm with the BC admin (§6).</p>
       </div></details></li>
   <li class="node"><div class="dot">E2</div>
-    <details class="card"><summary><span class="m APP">JOB</span><span class="t">ERP-Sync Job writes the rental fields</span><span class="chev" aria-hidden="true"></span><span class="ep">rental_enabled · rental_units_available_ca · catalog.product_rental_rates</span></summary>
+    <details class="card"><summary><span class="m APP">JOB</span><span class="t">ERP-Sync Job sets the rental fields</span><span class="chev" aria-hidden="true"></span><span class="ep">rental_enabled · catalog.product_rental_rates</span></summary>
       <div class="detail">
-        <p>On each run the job reads the rental values from Business Central and writes them into the CDB along with the rest of the catalog. Business Central always wins: a value changed in the CDB is overwritten on the next run.</p>
-        <p>When an item stops being rentable in Business Central, the job sets <code>rental_enabled</code> to false and the rental form disappears from that product page.</p>
+        <p>On each run the job reads the rental group and rates from Business Central and writes them into the CDB with the rest of the catalog. Business Central always wins: a value changed in the CDB is overwritten on the next run.</p>
       </div></details></li>
 </ol>
 
 <div class="phase-head"><h3>Rental request</h3><p>apps/web, while the customer waits</p></div>
 <ol class="flow">
   <li class="node"><div class="dot">R1</div>
-    <details class="card"><summary><span class="m APP">APP</span><span class="t">Show the rental form on the product page</span><span class="chev" aria-hidden="true"></span><span class="ep">only when rental_enabled = true</span></summary>
+    <details class="card"><summary><span class="m APP">APP</span><span class="t">Show the rental form</span><span class="chev" aria-hidden="true"></span><span class="ep">every product with rental_enabled = true</span></summary>
       <div class="detail">
-        <p>The product page reads the rental fields from the CDB. Rental items show the rental form and their rates from <code>catalog.product_rental_rates</code>; other products don't show it.</p>
-        <p>Rental items can't be bought at checkout. Rental lines in the cart go through the RFQ flow instead (Flow 1), and checkout refuses them.</p>
+        <p>The form is shown on every rental item, every time. The page doesn't check availability and doesn't tell the customer whether units are free. Rates come from <code>catalog.product_rental_rates</code>.</p>
+        <p>Rental items can't be bought at checkout. Checkout refuses rental lines, as described in the Orders flow.</p>
       </div></details></li>
   <li class="node"><div class="dot">R2</div>
-    <details class="card"><summary><span class="m POST">POST</span><span class="t">Save the rental request in the CDB</span><span class="chev" aria-hidden="true"></span><span class="ep">rental request record <span class="tag prop">table name proposed</span></span></summary>
+    <details class="card"><summary><span class="m POST">POST</span><span class="t">Save the request and outbox row in one transaction</span><span class="chev" aria-hidden="true"></span><span class="ep">rental request · commerce.integration_outbox</span></summary>
       <div class="detail">
-        <p>The customer submits the form and the request is saved in the CDB first. Once it is saved, the customer sees a confirmation that the sales team will be in touch.</p>
-        <p>The request keeps a copy of the product, the quantity and the rate shown to the customer, so a later rate change in Business Central doesn't change what the customer was quoted.</p>
-        <div><h4>Example request <span class="tag prop">fields proposed</span></h4><pre>{
-  "sku": "MEG-1000",
-  "quantity": 1,
-  "startDate": "2026-12-01",
-  "endDate": "2026-12-15",
-  "rateShown": { "period": "week", "amount": 180.00, "currency": "CAD" },
+        <p>Both writes commit together or not at all, as in the Orders flow. That guarantees every saved request reaches the outbox job and becomes a Sales Quote. The customer then sees a confirmation that the sales team will be in touch.</p>
+        <div><h4>Outbox row</h4><pre>topic            'rental.requested'      -- proposed topic
+aggregate_id     rental request id
+status           'pending'
+attempts         0
+next_attempt_at  now()
+payload          (below)</pre></div>
+        <div><h4>Payload: a snapshot, so later rate changes don't change what is quoted <span class="tag prop">fields proposed</span></h4><pre>{
+  "requestNumber": "RNT-CA-000045",
+  "currency": "CAD",
   "customer": {
     "company": "Acme Testing Ltd",
     "name": "Dana Ruiz",
     "email": "dana@acmetesting.ca",
     "phone": "+1 780 555 0142"
   },
+  "lines": [
+    { "sku": "MEG-1000", "quantity": 1,
+      "rateShown": { "period": "week", "amount": 180.00 } }
+  ],
+  "startDate": "2026-12-01",
+  "endDate": "2026-12-15",
   "message": "Needed for a site test in Edmonton"
 }</pre></div>
       </div></details></li>
   <li class="node"><div class="dot">R3</div>
-    <details class="card"><summary><span class="m APP">APP</span><span class="t">Send the Klaviyo rental item event</span><span class="chev" aria-hidden="true"></span><span class="ep">after the request is saved</span></summary>
+    <details class="card"><summary><span class="m APP">APP</span><span class="t">Send the Klaviyo rental event</span><span class="chev" aria-hidden="true"></span><span class="ep">alert email to the sales team</span></summary>
       <div class="detail">
-        <p>The event is sent only once the request is saved. If Klaviyo is unavailable, the request is still in the CDB, so no lead is lost; how the event is retried is an open decision (§5).</p>
-      </div></details></li>
-  <li class="node"><div class="dot">R4</div>
-    <details class="card"><summary><span class="m APP">EMAIL</span><span class="t">Klaviyo emails the sales team</span><span class="chev" aria-hidden="true"></span><span class="ep">email alert</span></summary>
-      <div class="detail">
-        <p>The email tells the sales team which item was requested, by whom, for which dates, and how to reach the customer. The sales team follows up directly with the customer.</p>
+        <p>Sent once the transaction has committed. The email tells the sales team which item was requested, by whom, for which dates, and how to reach the customer, with the request number they'll later find on the Sales Quote.</p>
       </div></details></li>
 </ol>
 
-<!-- =============== 4. DATA =============== -->
-<div class="section-head" id="data"><h2><span>4</span>Data model touchpoints</h2><p>What this flow reads and writes</p></div>
+<div class="phase-head"><h3>Create the rental Sales Quote</h3><p>jobs/integration-outbox, in the background</p></div>
+<p class="prose">The same outbox job and the same safe-to-repeat steps as the Orders flow. The differences: the topic is <code>rental.requested</code>, the quote is marked as a rental, and the lines use the rental item numbers.</p>
+<ol class="flow">
+  <li class="node"><div class="dot">S1</div>
+    <details class="card"><summary><span class="m APP">SQL</span><span class="t">Claim pending rows</span><span class="chev" aria-hidden="true"></span><span class="ep">commerce.integration_outbox, topic = 'rental.requested'</span></summary>
+      <div class="detail">
+        <p>Same claim as Orders S1, with <code>topic = 'rental.requested'</code>. The five-minute lease stops two runs working on the same request.</p>
+      </div></details></li>
+  <li class="node"><div class="dot">S2</div>
+    <details class="card"><summary><span class="m GET">GET</span><span class="t">Find the customer</span><span class="chev" aria-hidden="true"></span><span class="ep">{base}/customers?$filter=email eq 'dana@acmetesting.ca'</span></summary>
+      <div class="detail">
+        <p>An empty <code>value</code> array means not found: go to S2b. Because this runs on every attempt, a customer created by an earlier attempt is found here instead of being created twice.</p>
+      </div></details></li>
+  <li class="node"><div class="dot opt">S2b</div>
+    <details class="card opt"><summary><span class="m POST">POST</span><span class="t">Create the customer<span class="tag quiet">only if not found</span></span><span class="chev" aria-hidden="true"></span><span class="ep">{base}/customers</span></summary>
+      <div class="detail">
+        <div><h4>Body</h4><pre>{
+  "displayName": "Acme Testing Ltd",
+  "type": "Company",
+  "email": "dana@acmetesting.ca",
+  "phoneNumber": "+1 780 555 0142",
+  "currencyCode": "CAD"
+}</pre></div>
+        <p>Business Central fills posting groups, payment terms and tax area from the default customer template.</p>
+      </div></details></li>
+  <li class="node"><div class="dot">S3</div>
+    <details class="card"><summary><span class="m GET">GET</span><span class="t">Check for an existing quote</span><span class="chev" aria-hidden="true"></span><span class="ep">{base}/salesQuotes?$filter=externalDocumentNumber eq 'RNT-CA-000045'&amp;$expand=salesQuoteLines</span></summary>
+      <div class="detail">
+        <p>If an earlier attempt timed out after Business Central had already created the quote, it is found here and reused. An empty <code>value</code> array means carry on to S4.</p>
+      </div></details></li>
+  <li class="node"><div class="dot">S4</div>
+    <details class="card"><summary><span class="m POST">POST</span><span class="t">Create the rental Sales Quote header</span><span class="chev" aria-hidden="true"></span><span class="ep">{base}/salesQuotes</span></summary>
+      <div class="detail">
+        <div><h4>Body</h4><pre>{
+  "customerNumber": "C00042",
+  "externalDocumentNumber": "RNT-CA-000045",
+  "documentDate": "2026-11-12",
+  "currencyCode": "CAD",
+  "email": "dana@acmetesting.ca"
+  // + the rental marker, see below
+}</pre></div>
+        <div><h4>Response <span class="status">201 Created</span></h4><pre>{
+  "id": "d7e2a0c5-2b7f-ef11-9f88-6045bdc8c1a7",
+  "number": "SQ-1057",
+  "externalDocumentNumber": "RNT-CA-000045",
+  "customerNumber": "C00042",
+  "status": "Draft"
+}</pre></div>
+        <p>The quote has to show the sales team at a glance that it is a rental. The <code>RNT-</code> request number in <code>externalDocumentNumber</code> already does this, and the sales team can search for it. A proper rental marker on the quote, such as a field added by an API extension, is an open decision (§6).</p>
+      </div></details></li>
+  <li class="node"><div class="dot">S5</div>
+    <details class="card"><summary><span class="m POST">POST</span><span class="t">Add the rental lines<span class="tag">one call per line</span></span><span class="chev" aria-hidden="true"></span><span class="ep">{base}/salesQuotes({quoteId})/salesQuoteLines</span></summary>
+      <div class="detail">
+        <p>The BC item number comes from <code>catalog.product_erp_refs</code> with <code>role = 'rental'</code>, never from the SKU directly. A SKU with no rental mapping is a permanent error: the job stops and alerts instead of guessing.</p>
+        <div><h4>Rental line</h4><pre>{ "lineType": "Item", "lineObjectNumber": "RNT-MEG-1000", "quantity": 1, "unitPrice": 180.00,
+  "description": "Rental: MEG-1000, 2026-12-01 to 2026-12-15" }</pre></div>
+        <p>The rental dates go in the line description so they show on the quote. How many rate periods to charge, and whether the rate shown is the price on the quote, are open decisions (§6).</p>
+      </div></details></li>
+  <li class="node"><div class="dot">S6</div>
+    <details class="card"><summary><span class="m APP">SQL</span><span class="t">Mark as sent</span><span class="chev" aria-hidden="true"></span><span class="ep">integration_outbox · rental request</span></summary>
+      <div class="detail">
+        <div><h4>Updates, in one transaction</h4><pre>UPDATE commerce.integration_outbox
+SET    status = 'sent', last_error = NULL
+WHERE  id = $1;
+
+UPDATE commerce.rental_requests       -- proposed table
+SET    bc_document_no = 'SQ-1057',
+       bc_document_id = 'd7e2a0c5-…',
+       bc_synced_at   = now()
+WHERE  id = $2;</pre></div>
+        <p>The BC number on the request lets the CMS link each rental request to its quote in Business Central.</p>
+      </div></details></li>
+</ol>
+
+<div class="phase-head"><h3>Close the deal</h3><p>Later, done by the sales team</p></div>
+<p class="prose">These run when a person acts in Business Central, so a failure shows to that person straight away. They don't go through the outbox.</p>
+<ol class="flow">
+  <li class="node"><div class="dot">C1</div>
+    <details class="card"><summary><span class="m APP">SALES</span><span class="t">Contact the customer</span><span class="chev" aria-hidden="true"></span><span class="ep">from the alert email or the rental quote in BC</span></summary>
+      <div class="detail">
+        <p>The sales team checks that units are free for the dates, agrees the details with the customer, and updates the quote if needed (dates, quantity, rate).</p>
+      </div></details></li>
+  <li class="node"><div class="dot">C2</div>
+    <details class="card"><summary><span class="m POST">POST</span><span class="t">Convert the quote into the rental order</span><span class="chev" aria-hidden="true"></span><span class="ep">{base}/salesQuotes({quoteId})/Microsoft.NAV.makeOrder</span></summary>
+      <div class="detail">
+        <div><h4>Response <span class="status">204 No Content</span></h4><pre>(empty body)</pre></div>
+        <div><h4>Then find the new order <span class="status">200 OK</span></h4><pre>GET {base}/salesOrders?$filter=externalDocumentNumber eq 'RNT-CA-000045'
+
+{
+  "value": [
+    { "number": "S-ORD101031", "externalDocumentNumber": "RNT-CA-000045", "status": "Draft" }
+  ]
+}</pre></div>
+        <p>Usually done with the Make Order button in Business Central; this is the same action through the API. The quote is removed once the order exists, so find the order by <code>externalDocumentNumber</code>. If the customer doesn't go ahead, the quote is left to expire or deleted.</p>
+      </div></details></li>
+</ol>
+
+<!-- =============== 4. FAILURE =============== -->
+<div class="section-head" id="failure"><h2><span>4</span>When the sync fails</h2><p>Same rules as Orders</p></div>
+<p class="prose">Rental requests use the same retry schedule, error handling and alerts as the <a href="orders.html#failure">Orders flow, §3</a>: temporary errors are retried with backoff up to five attempts; permanent errors, or the fifth failure, roll back any partial quote, mark the outbox row failed, and tell the sales team. Pressing Retry in the CMS sets the row back to pending.</p>
+<div class="callout"><b>A failed sync never loses the request.</b>The request is already saved in the CDB and the sales team already has the Klaviyo email, so they can contact the customer while the quote is retried or created by hand.</div>
+
+<!-- =============== 5. DATA =============== -->
+<div class="section-head" id="data"><h2><span>5</span>Data model touchpoints</h2><p>What this flow reads and writes</p></div>
 <div class="table-wrap"><table>
   <thead><tr><th>Table or field</th><th>Role in this flow</th><th>Written by</th></tr></thead>
   <tbody>
-    <tr><td class="mono">rental_enabled</td><td>Turns the rental form on or off for a product</td><td>ERP-Sync Job</td></tr>
-    <tr><td class="mono">rental_units_available_ca</td><td>Units available to rent in Canada</td><td>ERP-Sync Job</td></tr>
+    <tr><td class="mono">rental_enabled</td><td>True when the item is in a BC rental group; shows the rental form</td><td>ERP-Sync Job</td></tr>
     <tr><td class="mono">catalog.product_rental_rates</td><td>Rental rates per product</td><td>ERP-Sync Job</td></tr>
     <tr><td class="mono">catalog.product_erp_refs</td><td>SKU to BC item number for rental lines, <code>role = 'rental'</code></td><td>JMTS IT mapping</td></tr>
+    <tr><td class="mono">commerce.integration_outbox</td><td><code>rental.requested</code> row; unique on <code>(topic, aggregate_id)</code>; alert at 5 attempts</td><td>apps/web (insert), outbox job (update), CMS Retry</td></tr>
     <tr class="prop"><td class="mono">commerce.rental_requests</td><td>One row per rental form submission <span class="tag prop">proposed</span></td><td>apps/web</td></tr>
+    <tr class="prop"><td class="mono">rental_requests.bc_document_no / _id / bc_synced_at</td><td>The BC quote number, GUID and sync time <span class="tag prop">proposed</span></td><td>outbox job</td></tr>
+    <tr class="prop"><td class="mono">integration_outbox topic 'rental.requested'</td><td>Creates the rental Sales Quote <span class="tag prop">proposed</span></td><td>apps/web (insert), outbox job</td></tr>
   </tbody>
 </table></div>
-<p class="prose">The diagram calls these “rental records” but doesn't name a table. <code>commerce.rental_requests</code> is a placeholder until the data model names it.</p>
+<p class="prose"><code>rental_units_available_ca</code> isn't used in this flow, because availability isn't shown to the customer. Decide whether the ERP-Sync Job keeps syncing it (§6).</p>
 
-<!-- =============== 5. DECISIONS =============== -->
-<div class="section-head" id="decisions"><h2><span>5</span>Open decisions</h2><p>Need an answer before build</p></div>
+<!-- =============== 6. DECISIONS =============== -->
+<div class="section-head" id="decisions"><h2><span>6</span>Open decisions</h2><p>Need an answer before build</p></div>
 <div class="decisions">
   <div class="decision">
-    <h3>Where the values live in BC</h3>
-    <p>The flag, units available and rates have to come from specific Business Central fields or price lists for the ERP-Sync Job to read them.</p>
-    <p class="rec"><b>Suggest</b>Confirm the fields with the BC admin and record them next to the ERP-Sync Job mapping.</p>
+    <h3>Which BC field is the rental group?</h3>
+    <p>The ERP-Sync Job needs one field to read: an item category, an attribute, or a custom field.</p>
+    <p class="rec"><b>Suggest</b>Confirm with the BC admin and record it next to the ERP-Sync Job mapping.</p>
   </div>
   <div class="decision">
-    <h3>No units available</h3>
-    <p>When <code>rental_units_available_ca</code> is 0, the page could hide the form, show it with a waitlist message, or show it as normal.</p>
-    <p class="rec"><b>Suggest</b>Keep the form and say units are limited. Sales can still offer dates or an alternative.</p>
+    <h3>How the quote is marked as rental</h3>
+    <p>The standard <code>salesQuotes</code> API has no rental field. The <code>RNT-</code> request number shows it, but it's easy to miss.</p>
+    <p class="rec"><b>Suggest</b>Add a rental flag through a BC API extension, or use a separate number series for rental quotes.</p>
+  </div>
+  <div class="decision">
+    <h3>Price on the quote lines</h3>
+    <p>The customer sees a rate per period. The quote needs a quantity and price that cover the requested dates.</p>
+    <p class="rec"><b>Suggest</b>Send the rate shown and the number of periods; the sales team adjusts it on the call.</p>
   </div>
   <div class="decision">
     <h3>Rental form or RFQ?</h3>
-    <p>Rental lines can also be quoted through the RFQ flow (Flow 1). Two routes for the same request could reach the sales team twice.</p>
-    <p class="rec"><b>Suggest</b>Decide whether the rental form replaces the RFQ path for rentals, or creates an RFQ behind the scenes.</p>
+    <p>Rental lines can also be quoted through the RFQ flow (Flow 1), which could create a second quote for the same request.</p>
+    <p class="rec"><b>Suggest</b>Make the rental form the only way to request a rental, and stop rental lines going into the RFQ cart.</p>
   </div>
   <div class="decision">
-    <h3>If Klaviyo fails</h3>
-    <p>The request is saved, but the sales team won't hear about it unless the event is sent again.</p>
-    <p class="rec"><b>Suggest</b>Send the event through the outbox, as orders do, so it is retried and alerts after repeated failures.</p>
-  </div>
-  <div class="decision">
-    <h3>Form fields</h3>
-    <p>The example in R2 is a proposal. Sales should confirm what they need to quote a rental.</p>
-    <p class="rec"><b>Suggest</b>Product, quantity, dates, contact details and a message, with dates optional.</p>
-  </div>
-  <div class="decision">
-    <h3>Who gets the email</h3>
-    <p>The diagram says “Sales team” without naming an inbox.</p>
+    <h3>Who gets the alert email</h3>
+    <p>“Sales team” isn't an inbox yet.</p>
     <p class="rec"><b>Suggest</b>Use the same inbox as new orders unless rentals have their own team.</p>
+  </div>
+  <div class="decision">
+    <h3>Keep syncing units available?</h3>
+    <p><code>rental_units_available_ca</code> isn't shown to customers any more.</p>
+    <p class="rec"><b>Suggest</b>Keep it for the CMS so sales can see availability next to the request, or drop it from the sync.</p>
   </div>
 </div>
 
-<footer>JMtest integration docs · Flow 3 · Rental items. Example values are illustrative; the rental request table and form fields are proposed, not migrated.</footer>
+<footer>JMtest integration docs · Flow 3 · Rental items. Business Central API v2.0. Example values are illustrative; the rental request table, the <code>rental.requested</code> topic and the form fields are proposed, not migrated.</footer>
 </div>
 
 <script>
