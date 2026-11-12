@@ -1,0 +1,360 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flow 3 · Rental items · JMtest integration docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --yellow:#FFE828; --on-yellow:#151515; --yellow-soft:#FFF9C9;
+  --bg:#FFFFFF; --panel:#F6F6F3; --ink:#151515; --muted:#5E6166; --line:#E2E2DC;
+  --green:#1B7F3B; --red:#B42318; --red-soft:#FDF0EE; --amber:#8A5A00; --amber-soft:#FFF4DB;
+  --sans:"Barlow", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.55}
+.page{max-width:980px;margin:0 auto;padding:40px 24px 96px}
+a{color:inherit}
+.home{display:inline-block;font-size:15px;font-weight:600;text-decoration:none;margin-bottom:20px;border-bottom:2px solid var(--yellow)}
+.home:hover{background:var(--yellow)}
+
+header{border-left:8px solid var(--yellow);padding:4px 0 4px 24px;margin-bottom:32px}
+.brand{font-weight:700;font-size:15px;letter-spacing:.02em;margin:0 0 10px}
+.brand b{background:var(--yellow);color:var(--on-yellow);padding:2px 8px;margin-right:8px}
+h1{font-size:44px;line-height:1.08;font-weight:700;margin:0;letter-spacing:-.01em}
+.lede{color:var(--muted);margin:12px 0 0;max-width:64ch}
+
+.facts{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);margin-bottom:20px}
+.facts div{padding:14px 16px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.facts div:nth-child(3n){border-right:0}
+.facts div:nth-last-child(-n+3){border-bottom:0}
+.facts dt{font-size:13px;font-weight:600;color:var(--muted);margin:0}
+.facts dd{margin:2px 0 0;font-weight:600}
+
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 48px;padding:0;list-style:none}
+.toc a{display:block;font-size:15px;font-weight:600;text-decoration:none;border:1px solid var(--line);padding:6px 12px}
+.toc a:hover{border-color:var(--ink)}
+.toc a span{color:var(--muted);font-weight:500;margin-right:6px}
+
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin:56px 0 20px;scroll-margin-top:20px}
+.section-head h2{font-size:30px;font-weight:700;margin:0}
+.section-head h2 span{display:inline-block;background:var(--yellow);font-size:16px;padding:2px 8px;margin-right:10px;vertical-align:5px}
+.section-head p{margin:0;color:var(--muted);font-size:15px}
+.prose{max-width:68ch;margin:0 0 16px}
+.prose code,td code,.detail p code,.detail li code,.decision code{font-family:var(--mono);font-size:14px;background:var(--panel);padding:0 4px}
+
+.diagram{border:1px solid var(--line);padding:20px 12px 12px;margin-bottom:12px}
+.diagram svg{display:block;width:100%;height:auto;margin:0 auto}
+.legend{display:flex;flex-wrap:wrap;gap:8px 24px;font-size:14px;color:var(--muted);margin:0 0 8px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:22px;height:14px;border:1.5px solid var(--ink);display:inline-block}
+.sw.ext{border-color:var(--muted)}
+.sw.yel{background:var(--yellow)}
+.sw.dark{background:var(--ink)}
+.sw.red{background:var(--red-soft);border-color:var(--red)}
+
+.callout{border-left:4px solid var(--yellow);background:var(--yellow-soft);padding:14px 18px;margin:16px 0 24px;max-width:72ch}
+.callout b{display:block;margin-bottom:2px}
+.callout.warn{border-left-color:var(--red);background:var(--red-soft)}
+
+.phase-head{display:flex;align-items:baseline;gap:14px;margin:28px 0 6px}
+.phase-head h3{font-size:22px;font-weight:700;margin:0}
+.phase-head p{margin:0;color:var(--muted);font-size:15px}
+.flow{position:relative;margin:0 0 24px;padding-left:0;list-style:none}
+.flow::before{content:"";position:absolute;left:21px;top:28px;bottom:28px;width:2px;background:var(--line)}
+.node{position:relative;display:grid;grid-template-columns:44px 1fr;gap:16px;padding:10px 0}
+.dot{width:44px;height:44px;border-radius:50%;background:var(--yellow);color:var(--on-yellow);display:grid;place-content:center;font-weight:700;font-size:15px;position:relative;z-index:1}
+details.card{border:1px solid var(--line);background:var(--bg)}
+details.card[open]{border-color:var(--ink)}
+summary{list-style:none;cursor:pointer;padding:12px 16px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary:focus-visible,.btn:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.m{font-family:var(--mono);font-size:12px;font-weight:500;padding:2px 8px;border:1.5px solid var(--ink);text-align:center;min-width:64px}
+.m.POST{background:var(--ink);color:var(--bg)}
+.m.APP{border-style:dashed}
+.t{font-weight:600;font-size:18px}
+.chev{width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin:0 4px 4px 0;transition:transform .15s}
+details[open] .chev{transform:rotate(-135deg);margin-bottom:-2px}
+.ep{grid-column:2 / 4;font-family:var(--mono);font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.tag{font-size:13px;font-weight:600;background:var(--yellow);color:var(--on-yellow);padding:1px 8px;margin-left:8px;vertical-align:2px}
+.tag.prop{background:var(--amber-soft);color:var(--amber)}
+.detail{padding:4px 16px 16px;display:grid;gap:14px}
+.detail h4{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.detail pre{margin:0;font-family:var(--mono);font-size:13px;line-height:1.55;background:var(--panel);border:1px solid var(--line);padding:10px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.detail p{margin:0;font-size:16px;max-width:66ch}
+.detail ul{margin:0;padding-left:20px;font-size:16px;max-width:66ch}
+
+.table-wrap{overflow-x:auto;margin:0 0 20px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:600;background:var(--panel)}
+tr:last-child td{border-bottom:0}
+td.mono{font-family:var(--mono);font-size:13px;white-space:nowrap}
+tr.prop td{background:var(--amber-soft)}
+
+.decisions{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.decision{border:1px solid var(--line);padding:18px 20px}
+.decision h3{font-size:18px;margin:0 0 6px}
+.decision p{margin:0 0 8px;font-size:16px;color:var(--muted)}
+.decision p:last-child{margin:0}
+.decision .rec{color:var(--ink)}
+.decision .rec b{background:var(--yellow);padding:0 6px;margin-right:4px}
+
+.btn{font:inherit;font-size:14px;font-weight:500;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:5px 12px;cursor:pointer}
+.btn:hover{border-color:var(--ink)}
+footer{margin-top:64px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:14px}
+
+@media (max-width:720px){
+  h1{font-size:32px}
+  .facts{grid-template-columns:1fr 1fr}
+  .facts div{border-right:1px solid var(--line)!important;border-bottom:1px solid var(--line)!important}
+  .decisions{grid-template-columns:1fr}
+  summary{grid-template-columns:auto 1fr}
+  .chev{display:none}
+  .ep{grid-column:1 / 3}
+  .section-head{flex-direction:column;align-items:flex-start}
+}
+@media (prefers-reduced-motion: reduce){.chev{transition:none}}
+@media print{.btn,.home{display:none} details.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<a class="home" href="index.html">← All docs</a>
+
+<header>
+  <p class="brand"><b>JMtest</b>Flow 3 · jmtest.ca</p>
+  <h1>Rental items: from Business Central to the sales team</h1>
+  <p class="lede">Business Central decides what can be rented. The ERP-Sync Job copies that decision and the rental rates into the Consolidated Database (CDB). On the product page, rental items show a rental form; each request is saved in the CDB and a Klaviyo event emails the sales team.</p>
+</header>
+
+<dl class="facts">
+  <div><dt>Source of truth</dt><dd>Business Central</dd></div>
+  <div><dt>Synced by</dt><dd>ERP-Sync Job</dd></div>
+  <div><dt>Stored in</dt><dd>Consolidated Database</dd></div>
+  <div><dt>Where customers ask</dt><dd>Rental form on the product page</dd></div>
+  <div><dt>Shown for</dt><dd>Items with rental_enabled</dd></div>
+  <div><dt>Alert</dt><dd>Klaviyo → sales team email</dd></div>
+</dl>
+
+<ul class="toc">
+  <li><a href="#overview"><span>1</span>Whole flow</a></li>
+  <li><a href="#fields"><span>2</span>Rental fields</a></li>
+  <li><a href="#steps"><span>3</span>Step by step</a></li>
+  <li><a href="#data"><span>4</span>Data model</a></li>
+  <li><a href="#decisions"><span>5</span>Open decisions</a></li>
+</ul>
+
+<!-- =============== 1. WHOLE FLOW =============== -->
+<div class="section-head" id="overview"><h2><span>1</span>The whole flow</h2><p>Two paths that meet in the CDB</p></div>
+<p class="prose">The top path runs in the background: Business Central marks items as rentable and sets their rates, and the ERP-Sync Job writes those fields into the CDB. The bottom path starts with the customer: on a rental item's product page they fill in the rental form, the request is saved in the CDB, and a Klaviyo event sends the sales team an email alert. Nothing is paid online; the sales team follows up.</p>
+
+<div class="diagram">
+<svg viewBox="0 0 960 384" role="img" aria-labelledby="d1t d1d" font-family="Barlow, Segoe UI, sans-serif">
+  <title id="d1t">Rental items flow</title>
+  <desc id="d1d">Business Central decides what is rentable. The ERP-Sync Job copies the rental fields and rental rates into the Consolidated Database, which holds the catalog and rental records. A storefront customer fills in the rental form on the product page, shown for rental items only. The form saves the request in the Consolidated Database and sends a rental item event to Klaviyo, which emails the sales team. The rental fields in the database are rental_enabled, rental_units_available_ca and catalog.product_rental_rates, managed in Business Central and synced by the ERP-Sync Job.</desc>
+  <defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#151515"/></marker></defs>
+
+  <g fill="none" stroke="#151515" stroke-width="1.5">
+    <path d="M200 52H238" marker-end="url(#a1)"/>
+    <path d="M420 52H458" marker-end="url(#a1)"/>
+    <path d="M200 198H238" marker-end="url(#a1)"/>
+    <path d="M420 198H458" marker-end="url(#a1)"/>
+    <path d="M330 230V332H458" marker-end="url(#a1)"/>
+    <path d="M640 332H678" marker-end="url(#a1)"/>
+  </g>
+  <text x="439" y="189" text-anchor="middle" font-size="12" font-weight="600" fill="#5E6166">save</text>
+  <text x="400" y="323" text-anchor="middle" font-size="12" font-weight="600" fill="#5E6166">rental event</text>
+
+  <!-- row 1: sync -->
+  <rect x="20" y="20" width="180" height="64" fill="#fff" stroke="#5E6166" stroke-width="1.5"/>
+  <text x="110" y="46" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Business Central</text>
+  <text x="110" y="66" text-anchor="middle" font-size="13" fill="#5E6166">decides what is rentable</text>
+
+  <rect x="240" y="20" width="180" height="64" fill="#FFE828" stroke="#151515" stroke-width="1.5"/>
+  <text x="330" y="46" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">ERP-Sync Job</text>
+  <text x="330" y="66" text-anchor="middle" font-size="13" fill="#151515">fields + rental rates</text>
+
+  <!-- CDB -->
+  <rect x="460" y="20" width="180" height="210" fill="#151515"/>
+  <text x="550" y="104" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">Consolidated</text>
+  <text x="550" y="125" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">Database</text>
+  <text x="550" y="148" text-anchor="middle" font-size="13" fill="#D9D9D4">catalog + rental records</text>
+
+  <!-- rental fields panel -->
+  <rect x="680" y="20" width="260" height="210" fill="#fff" stroke="#E2E2DC" stroke-width="1.5"/>
+  <text x="700" y="50" font-size="16" font-weight="700" fill="#151515">Rental fields in the CDB</text>
+  <g font-size="13" font-weight="700" font-family="JetBrains Mono, monospace" fill="#8A5A00">
+    <text x="700" y="84">rental_enabled</text>
+    <text x="700" y="112">rental_units_available_ca</text>
+    <text x="700" y="140">catalog.product_rental_rates</text>
+  </g>
+  <text x="700" y="178" font-size="13" fill="#5E6166">Managed in BC, synced by</text>
+  <text x="700" y="196" font-size="13" fill="#5E6166">the ERP-Sync Job</text>
+
+  <!-- row 2: customer -->
+  <rect x="20" y="166" width="180" height="64" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="110" y="192" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Customer</text>
+  <text x="110" y="212" text-anchor="middle" font-size="13" fill="#5E6166">storefront visitor</text>
+
+  <rect x="240" y="166" width="180" height="64" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="330" y="192" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Rental form</text>
+  <text x="330" y="212" text-anchor="middle" font-size="13" fill="#5E6166">PDP, rental items only</text>
+
+  <!-- row 3: alert -->
+  <rect x="460" y="300" width="180" height="64" fill="#FDF0EE" stroke="#B42318" stroke-width="1.5"/>
+  <text x="550" y="326" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Klaviyo</text>
+  <text x="550" y="346" text-anchor="middle" font-size="13" fill="#5E6166">rental item event</text>
+
+  <rect x="680" y="300" width="180" height="64" fill="#FDF0EE" stroke="#B42318" stroke-width="1.5"/>
+  <text x="770" y="326" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Sales team</text>
+  <text x="770" y="346" text-anchor="middle" font-size="13" fill="#5E6166">email alert</text>
+</svg>
+</div>
+<div class="legend">
+  <span><i class="sw ext"></i>Business Central</span>
+  <span><i class="sw yel"></i>Background job</span>
+  <span><i class="sw"></i>apps/web</span>
+  <span><i class="sw dark"></i>Consolidated Database</span>
+  <span><i class="sw red"></i>Notification</span>
+</div>
+<div class="callout"><b>Business Central owns the rental fields.</b>The storefront and the CMS only read them. To make an item rentable, change its rate or its units available, change it in Business Central and let the next ERP-Sync Job run copy it across.</div>
+
+<!-- =============== 2. FIELDS =============== -->
+<div class="section-head" id="fields"><h2><span>2</span>Rental fields in the CDB</h2><p>Managed in BC, synced by the ERP-Sync Job</p></div>
+<div class="table-wrap"><table>
+  <thead><tr><th>Field</th><th>What it controls on the storefront</th><th>Written by</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">rental_enabled</td><td>Whether the product page shows the rental form. When it is false, the form is not shown.</td><td>ERP-Sync Job</td></tr>
+    <tr><td class="mono">rental_units_available_ca</td><td>How many units can be rented in Canada. What the page does when this is 0 is still to decide (§5).</td><td>ERP-Sync Job</td></tr>
+    <tr><td class="mono">catalog.product_rental_rates</td><td>The rental rates for each product, shown next to the form.</td><td>ERP-Sync Job</td></tr>
+  </tbody>
+</table></div>
+
+<!-- =============== 3. STEPS =============== -->
+<div class="section-head" id="steps"><h2><span>3</span>Step by step</h2><button class="btn" type="button" id="expand">Open all steps</button></div>
+
+<div class="phase-head"><h3>Sync from Business Central</h3><p>ERP-Sync Job, in the background</p></div>
+<ol class="flow">
+  <li class="node"><div class="dot">E1</div>
+    <details class="card"><summary><span class="m APP">BC</span><span class="t">Business Central decides what is rentable</span><span class="chev" aria-hidden="true"></span><span class="ep">rental flag · units available in Canada · rental rates</span></summary>
+      <div class="detail">
+        <p>The rental flag, the units available in Canada and the rental rates are all set on the item in Business Central. Nobody edits them on the storefront or in the CMS.</p>
+        <p>Which Business Central fields or price lists hold these values is still to confirm with the BC admin (§5).</p>
+      </div></details></li>
+  <li class="node"><div class="dot">E2</div>
+    <details class="card"><summary><span class="m APP">JOB</span><span class="t">ERP-Sync Job writes the rental fields</span><span class="chev" aria-hidden="true"></span><span class="ep">rental_enabled · rental_units_available_ca · catalog.product_rental_rates</span></summary>
+      <div class="detail">
+        <p>On each run the job reads the rental values from Business Central and writes them into the CDB along with the rest of the catalog. Business Central always wins: a value changed in the CDB is overwritten on the next run.</p>
+        <p>When an item stops being rentable in Business Central, the job sets <code>rental_enabled</code> to false and the rental form disappears from that product page.</p>
+      </div></details></li>
+</ol>
+
+<div class="phase-head"><h3>Rental request</h3><p>apps/web, while the customer waits</p></div>
+<ol class="flow">
+  <li class="node"><div class="dot">R1</div>
+    <details class="card"><summary><span class="m APP">APP</span><span class="t">Show the rental form on the product page</span><span class="chev" aria-hidden="true"></span><span class="ep">only when rental_enabled = true</span></summary>
+      <div class="detail">
+        <p>The product page reads the rental fields from the CDB. Rental items show the rental form and their rates from <code>catalog.product_rental_rates</code>; other products don't show it.</p>
+        <p>Rental items can't be bought at checkout. Rental lines in the cart go through the RFQ flow instead (Flow 1), and checkout refuses them.</p>
+      </div></details></li>
+  <li class="node"><div class="dot">R2</div>
+    <details class="card"><summary><span class="m POST">POST</span><span class="t">Save the rental request in the CDB</span><span class="chev" aria-hidden="true"></span><span class="ep">rental request record <span class="tag prop">table name proposed</span></span></summary>
+      <div class="detail">
+        <p>The customer submits the form and the request is saved in the CDB first. Once it is saved, the customer sees a confirmation that the sales team will be in touch.</p>
+        <p>The request keeps a copy of the product, the quantity and the rate shown to the customer, so a later rate change in Business Central doesn't change what the customer was quoted.</p>
+        <div><h4>Example request <span class="tag prop">fields proposed</span></h4><pre>{
+  "sku": "MEG-1000",
+  "quantity": 1,
+  "startDate": "2026-12-01",
+  "endDate": "2026-12-15",
+  "rateShown": { "period": "week", "amount": 180.00, "currency": "CAD" },
+  "customer": {
+    "company": "Acme Testing Ltd",
+    "name": "Dana Ruiz",
+    "email": "dana@acmetesting.ca",
+    "phone": "+1 780 555 0142"
+  },
+  "message": "Needed for a site test in Edmonton"
+}</pre></div>
+      </div></details></li>
+  <li class="node"><div class="dot">R3</div>
+    <details class="card"><summary><span class="m APP">APP</span><span class="t">Send the Klaviyo rental item event</span><span class="chev" aria-hidden="true"></span><span class="ep">after the request is saved</span></summary>
+      <div class="detail">
+        <p>The event is sent only once the request is saved. If Klaviyo is unavailable, the request is still in the CDB, so no lead is lost; how the event is retried is an open decision (§5).</p>
+      </div></details></li>
+  <li class="node"><div class="dot">R4</div>
+    <details class="card"><summary><span class="m APP">EMAIL</span><span class="t">Klaviyo emails the sales team</span><span class="chev" aria-hidden="true"></span><span class="ep">email alert</span></summary>
+      <div class="detail">
+        <p>The email tells the sales team which item was requested, by whom, for which dates, and how to reach the customer. The sales team follows up directly with the customer.</p>
+      </div></details></li>
+</ol>
+
+<!-- =============== 4. DATA =============== -->
+<div class="section-head" id="data"><h2><span>4</span>Data model touchpoints</h2><p>What this flow reads and writes</p></div>
+<div class="table-wrap"><table>
+  <thead><tr><th>Table or field</th><th>Role in this flow</th><th>Written by</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">rental_enabled</td><td>Turns the rental form on or off for a product</td><td>ERP-Sync Job</td></tr>
+    <tr><td class="mono">rental_units_available_ca</td><td>Units available to rent in Canada</td><td>ERP-Sync Job</td></tr>
+    <tr><td class="mono">catalog.product_rental_rates</td><td>Rental rates per product</td><td>ERP-Sync Job</td></tr>
+    <tr><td class="mono">catalog.product_erp_refs</td><td>SKU to BC item number for rental lines, <code>role = 'rental'</code></td><td>JMTS IT mapping</td></tr>
+    <tr class="prop"><td class="mono">commerce.rental_requests</td><td>One row per rental form submission <span class="tag prop">proposed</span></td><td>apps/web</td></tr>
+  </tbody>
+</table></div>
+<p class="prose">The diagram calls these “rental records” but doesn't name a table. <code>commerce.rental_requests</code> is a placeholder until the data model names it.</p>
+
+<!-- =============== 5. DECISIONS =============== -->
+<div class="section-head" id="decisions"><h2><span>5</span>Open decisions</h2><p>Need an answer before build</p></div>
+<div class="decisions">
+  <div class="decision">
+    <h3>Where the values live in BC</h3>
+    <p>The flag, units available and rates have to come from specific Business Central fields or price lists for the ERP-Sync Job to read them.</p>
+    <p class="rec"><b>Suggest</b>Confirm the fields with the BC admin and record them next to the ERP-Sync Job mapping.</p>
+  </div>
+  <div class="decision">
+    <h3>No units available</h3>
+    <p>When <code>rental_units_available_ca</code> is 0, the page could hide the form, show it with a waitlist message, or show it as normal.</p>
+    <p class="rec"><b>Suggest</b>Keep the form and say units are limited. Sales can still offer dates or an alternative.</p>
+  </div>
+  <div class="decision">
+    <h3>Rental form or RFQ?</h3>
+    <p>Rental lines can also be quoted through the RFQ flow (Flow 1). Two routes for the same request could reach the sales team twice.</p>
+    <p class="rec"><b>Suggest</b>Decide whether the rental form replaces the RFQ path for rentals, or creates an RFQ behind the scenes.</p>
+  </div>
+  <div class="decision">
+    <h3>If Klaviyo fails</h3>
+    <p>The request is saved, but the sales team won't hear about it unless the event is sent again.</p>
+    <p class="rec"><b>Suggest</b>Send the event through the outbox, as orders do, so it is retried and alerts after repeated failures.</p>
+  </div>
+  <div class="decision">
+    <h3>Form fields</h3>
+    <p>The example in R2 is a proposal. Sales should confirm what they need to quote a rental.</p>
+    <p class="rec"><b>Suggest</b>Product, quantity, dates, contact details and a message, with dates optional.</p>
+  </div>
+  <div class="decision">
+    <h3>Who gets the email</h3>
+    <p>The diagram says “Sales team” without naming an inbox.</p>
+    <p class="rec"><b>Suggest</b>Use the same inbox as new orders unless rentals have their own team.</p>
+  </div>
+</div>
+
+<footer>JMtest integration docs · Flow 3 · Rental items. Example values are illustrative; the rental request table and form fields are proposed, not migrated.</footer>
+</div>
+
+<script>
+const toggle = document.getElementById("expand");
+toggle.addEventListener("click", () => {
+  const open = toggle.textContent === "Open all steps";
+  document.querySelectorAll("details.card").forEach(d => (d.open = open));
+  toggle.textContent = open ? "Close all steps" : "Open all steps";
+});
+</script>
+</body>
+</html>
