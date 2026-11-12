@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Flow 1 · Catalog · JMtest integration docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --yellow:#FFE828; --on-yellow:#151515; --yellow-soft:#FFF9C9;
+  --bg:#FFFFFF; --panel:#F6F6F3; --ink:#151515; --muted:#5E6166; --line:#E2E2DC;
+  --green:#1B7F3B; --red:#B42318; --red-soft:#FDF0EE; --amber:#8A5A00; --amber-soft:#FFF4DB;
+  --sans:"Barlow", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.55}
+.page{max-width:980px;margin:0 auto;padding:40px 24px 96px}
+a{color:inherit}
+.home{display:inline-block;font-size:15px;font-weight:600;text-decoration:none;margin-bottom:20px;border-bottom:2px solid var(--yellow)}
+.home:hover{background:var(--yellow)}
+
+header{border-left:8px solid var(--yellow);padding:4px 0 4px 24px;margin-bottom:32px}
+.brand{font-weight:700;font-size:15px;letter-spacing:.02em;margin:0 0 10px}
+.brand b{background:var(--yellow);color:var(--on-yellow);padding:2px 8px;margin-right:8px}
+h1{font-size:44px;line-height:1.08;font-weight:700;margin:0;letter-spacing:-.01em}
+.lede{color:var(--muted);margin:12px 0 0;max-width:64ch}
+
+.facts{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);margin-bottom:20px}
+.facts div{padding:14px 16px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.facts div:nth-child(3n){border-right:0}
+.facts div:nth-last-child(-n+3){border-bottom:0}
+.facts dt{font-size:13px;font-weight:600;color:var(--muted);margin:0}
+.facts dd{margin:2px 0 0;font-weight:600}
+
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 48px;padding:0;list-style:none}
+.toc a{display:block;font-size:15px;font-weight:600;text-decoration:none;border:1px solid var(--line);padding:6px 12px}
+.toc a:hover{border-color:var(--ink)}
+.toc a span{color:var(--muted);font-weight:500;margin-right:6px}
+
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin:56px 0 20px;scroll-margin-top:20px}
+.section-head h2{font-size:30px;font-weight:700;margin:0}
+.section-head h2 span{display:inline-block;background:var(--yellow);font-size:16px;padding:2px 8px;margin-right:10px;vertical-align:5px}
+.section-head p{margin:0;color:var(--muted);font-size:15px}
+.prose{max-width:68ch;margin:0 0 16px}
+.prose code,td code,.detail p code,.detail li code,.decision code,.callout code{font-family:var(--mono);font-size:14px;background:var(--panel);padding:0 4px}
+
+.diagram{border:1px solid var(--line);padding:20px 12px 12px;margin-bottom:12px}
+.diagram svg{display:block;width:100%;height:auto;margin:0 auto}
+.legend{display:flex;flex-wrap:wrap;gap:8px 24px;font-size:14px;color:var(--muted);margin:0 0 8px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:22px;height:14px;border:1.5px solid var(--ink);display:inline-block}
+.sw.ext{border-color:var(--muted)}
+.sw.yel{background:var(--yellow)}
+.sw.soft{background:var(--yellow-soft)}
+.sw.dark{background:var(--ink)}
+
+.callout{border-left:4px solid var(--yellow);background:var(--yellow-soft);padding:14px 18px;margin:16px 0 24px;max-width:72ch}
+.callout b{display:block;margin-bottom:2px}
+.callout.warn{border-left-color:var(--red);background:var(--red-soft)}
+
+.phase-head{display:flex;align-items:baseline;gap:14px;margin:28px 0 6px}
+.phase-head h3{font-size:22px;font-weight:700;margin:0}
+.phase-head p{margin:0;color:var(--muted);font-size:15px}
+.flow{position:relative;margin:0 0 24px;padding-left:0;list-style:none}
+.flow::before{content:"";position:absolute;left:21px;top:28px;bottom:28px;width:2px;background:var(--line)}
+.node{position:relative;display:grid;grid-template-columns:44px 1fr;gap:16px;padding:10px 0}
+.dot{width:44px;height:44px;border-radius:50%;background:var(--yellow);color:var(--on-yellow);display:grid;place-content:center;font-weight:700;font-size:15px;position:relative;z-index:1}
+details.card{border:1px solid var(--line);background:var(--bg)}
+details.card[open]{border-color:var(--ink)}
+summary{list-style:none;cursor:pointer;padding:12px 16px;display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary:focus-visible,.btn:focus-visible{outline:3px solid var(--yellow);outline-offset:2px}
+.m{font-family:var(--mono);font-size:12px;font-weight:500;padding:2px 8px;border:1.5px solid var(--ink);text-align:center;min-width:64px}
+.m.POST{background:var(--ink);color:var(--bg)}
+.m.APP{border-style:dashed}
+.t{font-weight:600;font-size:18px}
+.chev{width:10px;height:10px;border-right:2px solid var(--muted);border-bottom:2px solid var(--muted);transform:rotate(45deg);margin:0 4px 4px 0;transition:transform .15s}
+details[open] .chev{transform:rotate(-135deg);margin-bottom:-2px}
+.ep{grid-column:2 / 4;font-family:var(--mono);font-size:13px;color:var(--muted);overflow-wrap:anywhere}
+.tag{font-size:13px;font-weight:600;background:var(--yellow);color:var(--on-yellow);padding:1px 8px;margin-left:8px;vertical-align:2px}
+.tag.prop{background:var(--amber-soft);color:var(--amber)}
+.detail{padding:4px 16px 16px;display:grid;gap:14px}
+.detail h4{font-size:13px;font-weight:600;color:var(--muted);margin:0 0 4px;display:flex;align-items:center;gap:8px}
+.detail pre{margin:0;font-family:var(--mono);font-size:13px;line-height:1.55;background:var(--panel);border:1px solid var(--line);padding:10px 12px;white-space:pre-wrap;overflow-wrap:anywhere}
+.detail p{margin:0;font-size:16px;max-width:66ch}
+.detail ul{margin:0;padding-left:20px;font-size:16px;max-width:66ch}
+
+.table-wrap{overflow-x:auto;margin:0 0 20px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:600;background:var(--panel)}
+tr:last-child td{border-bottom:0}
+td.mono{font-family:var(--mono);font-size:13px;white-space:nowrap}
+tr.prop td{background:var(--amber-soft)}
+h3.sub{font-size:20px;margin:28px 0 8px}
+
+.decisions{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.decision{border:1px solid var(--line);padding:18px 20px}
+.decision h3{font-size:18px;margin:0 0 6px}
+.decision p{margin:0 0 8px;font-size:16px;color:var(--muted)}
+.decision p:last-child{margin:0}
+.decision .rec{color:var(--ink)}
+.decision .rec b{background:var(--yellow);padding:0 6px;margin-right:4px}
+
+.btn{font:inherit;font-size:14px;font-weight:500;border:1px solid var(--line);background:var(--bg);color:var(--ink);padding:5px 12px;cursor:pointer}
+.btn:hover{border-color:var(--ink)}
+footer{margin-top:64px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:14px}
+
+@media (max-width:720px){
+  h1{font-size:32px}
+  .facts{grid-template-columns:1fr 1fr}
+  .facts div{border-right:1px solid var(--line)!important;border-bottom:1px solid var(--line)!important}
+  .decisions{grid-template-columns:1fr}
+  summary{grid-template-columns:auto 1fr}
+  .chev{display:none}
+  .ep{grid-column:1 / 3}
+  .section-head{flex-direction:column;align-items:flex-start}
+}
+@media (prefers-reduced-motion: reduce){.chev{transition:none}}
+@media print{.btn,.home{display:none} details.card{break-inside:avoid}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<a class="home" href="index.html">← All docs</a>
+
+<header>
+  <p class="brand"><b>JMtest</b>Flow 1 · jmtest.ca</p>
+  <h1>Catalog: how products get into the Consolidated Database</h1>
+  <p class="lede">Three sources feed the catalog: Sage 100 items, Business Central CAD pricing, and a one-time seed. Sage 100 items and Business Central prices both pass through the ERP-Sync Job. Only the Seeders write to the Consolidated Database (CDB) directly.</p>
+</header>
+
+<dl class="facts">
+  <div><dt>Item source</dt><dd>Sage 100, pushed by JMTS IT</dd></div>
+  <div><dt>Landing table</dt><dd>staging.item_code</dd></div>
+  <div><dt>Pricing source</dt><dd>Business Central, CAD</dd></div>
+  <div><dt>Writer</dt><dd>ERP-Sync Job (jobs/erp-sync)</dd></div>
+  <div><dt>Initial load</dt><dd>Seeders, one time</dd></div>
+  <div><dt>Stored in</dt><dd>CDB, Postgres catalog schema</dd></div>
+</dl>
+
+<ul class="toc">
+  <li><a href="#overview"><span>1</span>Whole flow</a></li>
+  <li><a href="#sources"><span>2</span>Who owns which field</a></li>
+  <li><a href="#steps"><span>3</span>Step by step</a></li>
+  <li><a href="#data"><span>4</span>Data model</a></li>
+  <li><a href="#decisions"><span>5</span>Open decisions</a></li>
+</ul>
+
+<!-- =============== 1. WHOLE FLOW =============== -->
+<div class="section-head" id="overview"><h2><span>1</span>The whole flow</h2><p>Three sources, one writer</p></div>
+<p class="prose">JMTS IT pushes the Sage 100 item extract into <code>staging.item_code</code>, a temporary store the storefront never reads. The ERP-Sync Job reads the new staging rows, pulls CAD pricing and the other Canadian fields from the Business Central Custom API, and writes the result into the catalog tables. The Seeders ran once to load the starting catalog. After that, every change comes through the ERP-Sync Job.</p>
+
+<div class="diagram">
+<svg viewBox="0 0 960 420" role="img" aria-labelledby="d1t d1d" font-family="Barlow, Segoe UI, sans-serif">
+  <title id="d1t">Catalog flow</title>
+  <desc id="d1d">Sage 100 items are pushed by the IT team into staging.item_code, a temporary store. The ERP-Sync Job reads the staging rows and pulls CAD pricing from Business Central, then writes catalog and pricing into the Consolidated Database, Postgres. The Seeders write the one-time initial load directly into the Consolidated Database.</desc>
+  <defs><marker id="a1" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#151515"/></marker></defs>
+
+  <g fill="none" stroke="#151515" stroke-width="1.5">
+    <path d="M210 52H248" marker-end="url(#a1)"/>
+    <path d="M440 52H478" marker-end="url(#a1)"/>
+    <path d="M670 52H718" marker-end="url(#a1)"/>
+    <path d="M440 212H575V86" marker-end="url(#a1)"/>
+    <path d="M670 362H718" marker-end="url(#a1)"/>
+  </g>
+  <g font-size="12" font-weight="600" fill="#5E6166">
+    <text x="229" y="43" text-anchor="middle">push</text>
+    <text x="459" y="43" text-anchor="middle">reads</text>
+    <text x="694" y="43" text-anchor="middle">upsert</text>
+    <text x="587" y="160">Custom API pull</text>
+    <text x="694" y="353" text-anchor="middle">once</text>
+  </g>
+
+  <rect x="20" y="20" width="190" height="64" fill="#fff" stroke="#5E6166" stroke-width="1.5"/>
+  <text x="115" y="46" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Sage 100</text>
+  <text x="115" y="66" text-anchor="middle" font-size="13" fill="#5E6166">pushed by the IT team</text>
+
+  <rect x="250" y="20" width="190" height="64" fill="#FFF9C9" stroke="#151515" stroke-width="1.5"/>
+  <text x="345" y="46" text-anchor="middle" font-size="15" font-weight="700" font-family="JetBrains Mono, monospace" fill="#151515">staging.item_code</text>
+  <text x="345" y="66" text-anchor="middle" font-size="13" fill="#5E6166">temporary store</text>
+
+  <rect x="480" y="20" width="190" height="64" fill="#FFE828" stroke="#151515" stroke-width="1.5"/>
+  <text x="575" y="46" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">ERP-Sync Job</text>
+  <text x="575" y="66" text-anchor="middle" font-size="13" fill="#151515">catalog + pricing</text>
+
+  <rect x="250" y="180" width="190" height="64" fill="#fff" stroke="#5E6166" stroke-width="1.5"/>
+  <text x="345" y="206" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Business Central</text>
+  <text x="345" y="226" text-anchor="middle" font-size="13" fill="#5E6166">CAD pricing, multi-vendor</text>
+
+  <rect x="480" y="330" width="190" height="64" fill="#FFE828" stroke="#151515" stroke-width="1.5"/>
+  <text x="575" y="356" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Seeders</text>
+  <text x="575" y="376" text-anchor="middle" font-size="13" fill="#151515">one-time initial load</text>
+
+  <rect x="720" y="20" width="220" height="374" fill="#151515"/>
+  <text x="830" y="170" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">Consolidated</text>
+  <text x="830" y="191" text-anchor="middle" font-size="17" font-weight="700" fill="#fff">Database</text>
+  <text x="830" y="213" text-anchor="middle" font-size="13" fill="#D9D9D4">Postgres</text>
+  <g font-size="11.5" font-family="JetBrains Mono, monospace" fill="#FFE828" text-anchor="middle">
+    <text x="830" y="250">catalog.products</text>
+    <text x="830" y="268">product_rental_rates</text>
+    <text x="830" y="286">calibration_services</text>
+  </g>
+</svg>
+</div>
+<div class="legend">
+  <span><i class="sw ext"></i>Source system</span>
+  <span><i class="sw soft"></i>Staging table</span>
+  <span><i class="sw yel"></i>Writes to the CDB</span>
+  <span><i class="sw dark"></i>Consolidated Database</span>
+</div>
+<div class="callout"><b>Only two things write the catalog.</b>Sage 100 items and Business Central prices both pass through the ERP-Sync Job. Only the Seeders write to the CDB directly, and only once. Nothing else, including the storefront and the CMS, changes ERP fields.</div>
+
+<!-- =============== 2. SOURCES =============== -->
+<div class="section-head" id="sources"><h2><span>2</span>Who owns which field</h2><p>From the jmtest.ca data model, draft 2026-11-02</p></div>
+<p class="prose">Each field has one owner. If you need a value changed, change it in the system that owns it and let the next sync carry it across.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Field or table</th><th>Owner</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">staging.item_code</td><td>Sage 100, pushed by JMTS IT</td><td>The item extract. The storefront only reads it, through the ERP-Sync Job.</td></tr>
+    <tr><td class="mono">products.list_price_cad</td><td>Business Central</td><td>From the BC Custom API item price endpoint. BC is required for jmtest.</td></tr>
+    <tr><td class="mono">products.available_in_ca</td><td>Business Central</td><td>From BC item availability.</td></tr>
+    <tr class="prop"><td class="mono">products.sale_enabled</td><td>Business Central</td><td>True when the item is in BC and not blocked for sale. <span class="tag prop">new column</span></td></tr>
+    <tr class="prop"><td class="mono">products.rental_enabled</td><td>Business Central</td><td>True when the item is connected to a BC rental group (the data model calls this the rental fleet). Both flags true shows the Buy / Rent switch. See <a href="rental-items.html">Flow 3</a>. <span class="tag prop">new column</span></td></tr>
+    <tr class="prop"><td class="mono">products.rental_units_available_ca</td><td>Business Central</td><td>From the BC rental fleet. Null means unknown, never zero. <span class="tag prop">new column</span></td></tr>
+    <tr class="prop"><td class="mono">catalog.product_rental_rates</td><td>Business Central</td><td>One row per rate tier from BC rental items. <span class="tag prop">new table</span></td></tr>
+    <tr class="prop"><td class="mono">catalog.calibration_services</td><td>Business Central</td><td>Priced calibration service items. <span class="tag prop">new table</span></td></tr>
+    <tr class="prop"><td class="mono">catalog.product_erp_refs</td><td>JMTS IT mapping</td><td>Links each SKU to its Sage 100 and BC item numbers. The job reads it but never writes it. <span class="tag prop">new table</span></td></tr>
+    <tr><td class="mono">catalog.calibration_rules</td><td>Calibration lab, in Studio</td><td>Not part of this flow. Listed so nobody expects the job to fill it.</td></tr>
+  </tbody>
+</table></div>
+
+<!-- =============== 3. STEPS =============== -->
+<div class="section-head" id="steps"><h2><span>3</span>Step by step</h2><button class="btn" type="button" id="expand">Open all steps</button></div>
+
+<div class="phase-head"><h3>Sage 100 items</h3><p>JMTS IT push, then the ERP-Sync Job</p></div>
+<ol class="flow">
+  <li class="node"><div class="dot">S1</div>
+    <details class="card"><summary><span class="m APP">PUSH</span><span class="t">JMTS IT pushes the item extract</span><span class="chev" aria-hidden="true"></span><span class="ep">staging.item_code</span></summary>
+      <div class="detail">
+        <p>Each push run gets one <code>load_batch_id</code>. Rows are unique on <code>(item_code, warehouse_code, load_batch_id)</code>, so there is one row per item per warehouse per push. It uses the same push contract as Vaetrix (<code>docs/infra/staging-item-code.sql</code>).</p>
+        <div><h4>Example row</h4><pre>item_code             'MEG-1000'
+item_code_desc        'Insulation tester, 10 kV'
+product_line          'INSUL'
+category              'Insulation testers'
+sales_uom             'EA'
+standard_price        725.0000
+suggested_retail      799.0000
+quantity_on_hand      4.0000        -- per warehouse; null = unknown
+warehouse_code        '000'
+item_status           'Active'
+source_system         'SAGE100'
+load_batch_id         '0b9e…'
+row_hash              'a41f…'       -- hash of the business columns
+processed             false</pre></div>
+        <p>Fields that aren't mapped to a column are kept in <code>raw</code> (jsonb), so nothing in the source record is lost.</p>
+      </div></details></li>
+  <li class="node"><div class="dot">S2</div>
+    <details class="card"><summary><span class="m APP">SQL</span><span class="t">Read unprocessed rows</span><span class="chev" aria-hidden="true"></span><span class="ep">staging.item_code WHERE processed = false</span></summary>
+      <div class="detail">
+        <p>A partial index on unprocessed rows keeps this read fast however large the staging table grows.</p>
+        <div><h4>Query</h4><pre>SELECT *
+FROM   staging.item_code
+WHERE  processed = false
+ORDER  BY loaded_at;</pre></div>
+      </div></details></li>
+  <li class="node"><div class="dot">S3</div>
+    <details class="card"><summary><span class="m APP">JOB</span><span class="t">Match each item to a storefront SKU</span><span class="chev" aria-hidden="true"></span><span class="ep">catalog.product_erp_refs, source_system = 'SAGE100'</span></summary>
+      <div class="detail">
+        <p>The Sage 100 <code>item_code</code> is looked up as <code>native_number</code> in <code>catalog.product_erp_refs</code>. Item numbers with no row there are reported, not inserted: JMTS IT decides whether they belong on the storefront and adds the mapping.</p>
+      </div></details></li>
+  <li class="node"><div class="dot">S4</div>
+    <details class="card"><summary><span class="m APP">JOB</span><span class="t">Update the product when something changed</span><span class="chev" aria-hidden="true"></span><span class="ep">catalog.products</span></summary>
+      <div class="detail">
+        <p>The job compares <code>row_hash</code> with the last processed row for the item, and writes to <code>catalog.products</code> only when it changed. Which Sage 100 columns map to which product columns is still to confirm (§5).</p>
+      </div></details></li>
+  <li class="node"><div class="dot">S5</div>
+    <details class="card"><summary><span class="m APP">SQL</span><span class="t">Mark the rows processed</span><span class="chev" aria-hidden="true"></span><span class="ep">processed = true, processed_at = now()</span></summary>
+      <div class="detail">
+        <p>Rows are marked only after the product write has committed, so a crash part-way through means the rows are read again on the next run rather than skipped.</p>
+      </div></details></li>
+</ol>
+
+<div class="phase-head"><h3>Business Central pricing</h3><p>ERP-Sync Job, Custom API pull</p></div>
+<ol class="flow">
+  <li class="node"><div class="dot">B1</div>
+    <details class="card"><summary><span class="m GET">GET</span><span class="t">Pull CAD price and availability</span><span class="chev" aria-hidden="true"></span><span class="ep">BC Custom API · item price endpoint</span></summary>
+      <div class="detail">
+        <p>Writes <code>list_price_cad</code>, <code>available_in_ca</code> and <code>sale_enabled</code> on <code>catalog.products</code>. BC item numbers are matched to SKUs through <code>catalog.product_erp_refs</code> with <code>source_system = 'BC'</code> and <code>role = 'sale'</code>.</p>
+        <p>BC is required for jmtest: a product with no BC record has no CAD price and isn't sold on jmtest.ca.</p>
+      </div></details></li>
+  <li class="node"><div class="dot">B2</div>
+    <details class="card"><summary><span class="m GET">GET</span><span class="t">Pull rental items and rates</span><span class="chev" aria-hidden="true"></span><span class="ep">catalog.product_rental_rates · rental_enabled · rental_units_available_ca</span></summary>
+      <div class="detail">
+        <p>Matched through <code>product_erp_refs</code> with <code>role = 'rental'</code>, because a product sold and the same product rented are usually two BC records. Rates are replaced, not merged, per SKU: the rate tiers for a SKU are always exactly what BC has now.</p>
+        <div><h4>One row per rate tier</h4><pre>sku          'MEG-1000'
+region       'CA'
+period       'week'          -- 'day' | 'week' | 'month'
+rate         180.00
+currency     'CAD'
+min_periods  1
+deposit      null
+bc_item_no   'RNT-MEG-1000'
+erp_status   'active'
+synced_at    now()</pre></div>
+      </div></details></li>
+  <li class="node"><div class="dot">B3</div>
+    <details class="card"><summary><span class="m GET">GET</span><span class="t">Pull calibration service prices</span><span class="chev" aria-hidden="true"></span><span class="ep">catalog.calibration_services</span></summary>
+      <div class="detail">
+        <p>One row per BC service item: <code>level</code> (<code>nist</code> or <code>iso17025</code>), <code>bc_item_no</code>, <code>price_cad</code> and <code>erp_status</code>. Which service applies to which product is decided by <code>catalog.calibration_rules</code>, kept by the calibration lab, not by this job.</p>
+      </div></details></li>
+</ol>
+
+<div class="phase-head"><h3>Seeders</h3><p>Once, before go-live</p></div>
+<ol class="flow">
+  <li class="node"><div class="dot">D1</div>
+    <details class="card"><summary><span class="m APP">SEED</span><span class="t">Load the starting catalog</span><span class="chev" aria-hidden="true"></span><span class="ep">writes the CDB directly</span></summary>
+      <div class="detail">
+        <p>The Seeders are the only thing that writes the catalog without going through the ERP-Sync Job. They run once to fill the catalog before the first sync. Seeded rate tiers and price matrix rows are replaced, not merged, per SKU, the same rule the job uses.</p>
+        <p>After the initial load the ERP-Sync Job owns every ERP field. Running a seeder again must not overwrite values the job has already synced (§5).</p>
+      </div></details></li>
+</ol>
+
+<!-- =============== 4. DATA =============== -->
+<div class="section-head" id="data"><h2><span>4</span>Data model touchpoints</h2><p>From the jmtest.ca data model, draft 2026-11-02</p></div>
+<div class="table-wrap"><table>
+  <thead><tr><th>Table</th><th>Role in this flow</th><th>Written by</th></tr></thead>
+  <tbody>
+    <tr><td class="mono">staging.item_code</td><td>Sage 100 item extract; unique on <code>(item_code, warehouse_code, load_batch_id)</code></td><td>JMTS IT push; <code>processed</code> set by the ERP-Sync Job</td></tr>
+    <tr><td class="mono">catalog.products</td><td>One row per storefront SKU</td><td>ERP-Sync Job, Seeders</td></tr>
+    <tr class="prop"><td class="mono">catalog.product_rental_rates</td><td>Rental rate tiers per SKU and region <span class="tag prop">new</span></td><td>ERP-Sync Job</td></tr>
+    <tr class="prop"><td class="mono">catalog.calibration_services</td><td>Priced calibration service items <span class="tag prop">new</span></td><td>ERP-Sync Job</td></tr>
+    <tr class="prop"><td class="mono">catalog.product_erp_refs</td><td>SKU to Sage 100 and BC item numbers, by role <span class="tag prop">new</span></td><td>JMTS IT mapping</td></tr>
+  </tbody>
+</table></div>
+<p class="prose">Tables marked new are proposed in the data model and not migrated yet. <code>apps/web</code> reads all <code>catalog.*</code> tables and never writes them.</p>
+
+<!-- =============== 5. DECISIONS =============== -->
+<div class="section-head" id="decisions"><h2><span>5</span>Open decisions</h2><p>Need an answer before build</p></div>
+<div class="decisions">
+  <div class="decision">
+    <h3>Sage 100 to product mapping</h3>
+    <p>The data model lists the staging columns but not which product column each one fills: name, category, status, stock.</p>
+    <p class="rec"><b>Suggest</b>Write the column-by-column mapping with JMTS IT and add it to this page.</p>
+  </div>
+  <div class="decision">
+    <h3>USD prices from Sage 100</h3>
+    <p>Staging carries <code>standard_price</code> and <code>suggested_retail</code>, but jmtest.ca prices in CAD from BC.</p>
+    <p class="rec"><b>Suggest</b>Use BC for every jmtest.ca price, and use the Sage 100 prices only for <code>list_price_usd</code>, if at all.</p>
+  </div>
+  <div class="decision">
+    <h3>What “multi-vendor” means</h3>
+    <p>The diagram says BC pricing is multi-vendor. The data model has no vendor table.</p>
+    <p class="rec"><b>Suggest</b>Confirm with the BC admin whether one item can have prices from several vendors, and which one the storefront shows.</p>
+  </div>
+  <div class="decision">
+    <h3>Sync schedule</h3>
+    <p>How often the ERP-Sync Job runs, and how often JMTS IT pushes to staging, decides how quickly a price change reaches the storefront.</p>
+    <p class="rec"><b>Suggest</b>Agree a schedule for each source and show the last sync time in the CMS.</p>
+  </div>
+  <div class="decision">
+    <h3>Where unmatched items are reported</h3>
+    <p>Item numbers with no row in <code>product_erp_refs</code> are reported, not inserted. Someone has to see that report.</p>
+    <p class="rec"><b>Suggest</b>Send a daily list to JMTS IT, the owners of the mapping.</p>
+  </div>
+  <div class="decision">
+    <h3>Running the Seeders again</h3>
+    <p>If a seeder is re-run after go-live, it could overwrite prices and flags the ERP-Sync Job has synced.</p>
+    <p class="rec"><b>Suggest</b>Make the seeders refuse to run once the catalog has synced rows, or skip ERP-owned fields.</p>
+  </div>
+</div>
+
+<footer>JMtest integration docs · Flow 1 · Catalog. Tables and columns from the jmtest.ca data model, draft 2026-11-02. Example values are illustrative; tables marked new are proposed, not migrated.</footer>
+</div>
+
+<script>
+const toggle = document.getElementById("expand");
+toggle.addEventListener("click", () => {
+  const open = toggle.textContent === "Open all steps";
+  document.querySelectorAll("details.card").forEach(d => (d.open = open));
+  toggle.textContent = open ? "Close all steps" : "Open all steps";
+});
+</script>
+</body>
+</html>
