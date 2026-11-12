@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calibration services · JMtest integration docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  color-scheme: light;
+  --yellow:#FFE828; --on-yellow:#151515; --yellow-soft:#FFF9C9;
+  --bg:#FFFFFF; --panel:#F6F6F3; --ink:#151515; --muted:#5E6166; --line:#E2E2DC;
+  --amber:#8A5A00; --amber-soft:#FFF4DB;
+  --sans:"Barlow", "Segoe UI", system-ui, sans-serif;
+  --mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:17px;line-height:1.55}
+.page{max-width:980px;margin:0 auto;padding:40px 24px 96px}
+a{color:inherit}
+.home{display:inline-block;font-size:15px;font-weight:600;text-decoration:none;margin-bottom:20px;border-bottom:2px solid var(--yellow)}
+.home:hover{background:var(--yellow)}
+
+header{border-left:8px solid var(--yellow);padding:4px 0 4px 24px;margin-bottom:32px}
+.brand{font-weight:700;font-size:15px;letter-spacing:.02em;margin:0 0 10px}
+.brand b{background:var(--yellow);color:var(--on-yellow);padding:2px 8px;margin-right:8px}
+h1{font-size:44px;line-height:1.08;font-weight:700;margin:0;letter-spacing:-.01em}
+.lede{color:var(--muted);margin:12px 0 0;max-width:64ch}
+
+.facts{display:grid;grid-template-columns:repeat(3,1fr);border:1px solid var(--line);margin-bottom:20px}
+.facts div{padding:14px 16px;border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.facts div:nth-child(3n){border-right:0}
+.facts div:nth-last-child(-n+3){border-bottom:0}
+.facts dt{font-size:13px;font-weight:600;color:var(--muted);margin:0}
+.facts dd{margin:2px 0 0;font-weight:600}
+
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 40px;padding:0;list-style:none}
+.toc a{display:block;font-size:15px;font-weight:600;text-decoration:none;border:1px solid var(--line);padding:6px 12px}
+.toc a:hover{border-color:var(--ink)}
+.toc a span{color:var(--muted);font-weight:500;margin-right:6px}
+
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:2px solid var(--ink);padding-bottom:8px;margin:56px 0 20px;scroll-margin-top:20px}
+.section-head h2{font-size:30px;font-weight:700;margin:0}
+.section-head h2 span{display:inline-block;background:var(--yellow);font-size:16px;padding:2px 8px;margin-right:10px;vertical-align:5px}
+.section-head p{margin:0;color:var(--muted);font-size:15px}
+h3.sub{font-size:20px;margin:28px 0 10px}
+.prose{max-width:68ch;margin:0 0 16px}
+.prose code,td code,li code,.card code{font-family:var(--mono);font-size:14px;background:var(--panel);padding:0 4px}
+
+.diagram{border:1px solid var(--line);padding:20px 12px 12px;margin-bottom:12px}
+.diagram svg{display:block;width:100%;height:auto;max-width:900px;margin:0 auto}
+.legend{display:flex;flex-wrap:wrap;gap:8px 24px;font-size:14px;color:var(--muted);margin:0 0 8px}
+.legend span{display:inline-flex;align-items:center;gap:8px}
+.sw{width:22px;height:14px;border:1.5px solid var(--ink);display:inline-block}
+.sw.dash{border-style:dashed;border-color:var(--muted)}
+.sw.yel{background:var(--yellow)}
+.sw.dark{background:var(--ink)}
+.sw.soft{background:var(--yellow-soft)}
+
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:12px;margin:0 0 20px;padding:0;list-style:none}
+.grid.two{grid-template-columns:1fr 1fr}
+.card{border:1px solid var(--line);padding:18px 18px 16px}
+.card.dash{border-style:dashed}
+.card .kicker{display:inline-block;font-size:13px;font-weight:600;background:var(--yellow);padding:1px 8px;margin-bottom:8px}
+.card .kicker.quiet{background:none;border:1px solid var(--line);color:var(--muted);font-weight:500}
+.card .kicker.warn{background:var(--amber-soft);color:var(--amber)}
+.card h4{font-size:19px;margin:0 0 6px;line-height:1.25}
+.card p{margin:0;font-size:16px}
+.card p + p{margin-top:8px}
+.card ul{margin:6px 0 0;padding-left:20px;font-size:16px}
+.card .muted{color:var(--muted)}
+
+.table-wrap{overflow-x:auto;margin:0 0 20px;border:1px solid var(--line)}
+table{border-collapse:collapse;width:100%;font-size:15px}
+th,td{text-align:left;padding:10px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+th{font-size:13px;color:var(--muted);font-weight:600;background:var(--panel)}
+tr:last-child td{border-bottom:0}
+td.k{font-weight:600;white-space:nowrap}
+tr.q td{background:var(--amber-soft)}
+.tag{font-size:13px;font-weight:600;padding:1px 8px;margin-left:6px;vertical-align:1px;white-space:nowrap}
+.tag.q{background:var(--amber-soft);color:var(--amber)}
+
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 20px;padding:0;list-style:none}
+.chips li{border:1.5px solid var(--ink);padding:4px 12px;font-weight:600;font-size:15px}
+.chips li small{font-weight:500;color:var(--muted);margin-left:6px}
+
+.callout{border-left:4px solid var(--yellow);background:var(--yellow-soft);padding:14px 18px;margin:16px 0 24px;max-width:72ch}
+.callout b{display:block;margin-bottom:2px}
+.callout.warn{border-left-color:var(--amber);background:var(--amber-soft)}
+
+footer{margin-top:64px;border-top:1px solid var(--line);padding-top:16px;color:var(--muted);font-size:14px}
+@media (max-width:720px){
+  h1{font-size:32px}
+  .facts{grid-template-columns:1fr 1fr}
+  .facts div{border-right:1px solid var(--line)!important;border-bottom:1px solid var(--line)!important}
+  .grid.two{grid-template-columns:1fr}
+  .section-head{flex-direction:column;align-items:flex-start}
+}
+@media print{.home{display:none}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<a class="home" href="index.html">← All docs</a>
+
+<header>
+  <p class="brand"><b>JMtest</b>Services · customer journey</p>
+  <h1>Calibration services: how it works for the customer</h1>
+  <p class="lede">The calibration journey as a customer sees it today on the JM Test calibration page: getting a quote, sending the equipment, what each calibration includes, and the Customer Portal afterwards. The last section notes what this means for jmtest.ca.</p>
+</header>
+
+<dl class="facts">
+  <div><dt>Accreditation</dt><dd>ISO/IEC 17025, by A2LA</dd></div>
+  <div><dt>Traceability</dt><dd>NIST</dd></div>
+  <div><dt>Also compliant with</dt><dd>ANSI/NCSL Z540-1, ISO 10012-1</dd></div>
+  <div><dt>Service types</dt><dd>In-lab, Onsite</dd></div>
+  <div><dt>Pressure, accredited to</dt><dd>30,000 PSI</dd></div>
+  <div><dt>Customer Portal</dt><dd>jmtest.com/portal, 24/7</dd></div>
+</dl>
+
+<ul class="toc">
+  <li><a href="#journey"><span>1</span>Journey</a></li>
+  <li><a href="#quote"><span>2</span>Getting a quote</a></li>
+  <li><a href="#service"><span>3</span>In-lab or onsite</a></li>
+  <li><a href="#included"><span>4</span>What’s included</a></li>
+  <li><a href="#portal"><span>5</span>After the service</a></li>
+  <li><a href="#coverage"><span>6</span>Accreditation and coverage</a></li>
+  <li><a href="#jmtestca"><span>7</span>For jmtest.ca</a></li>
+</ul>
+
+<!-- =============== 1. JOURNEY =============== -->
+<div class="section-head" id="journey"><h2><span>1</span>The customer journey</h2><p>From first visit to the next calibration</p></div>
+<p class="prose">Four stages. The customer starts on the calibration page, gets a quote, sends the equipment or books an onsite visit, receives the calibrated equipment with its paperwork, and then manages everything in the Customer Portal until the next calibration is due, which starts the cycle again.</p>
+
+<div class="diagram">
+<svg viewBox="0 0 900 1112" role="img" aria-labelledby="jT jD" font-family="Barlow, Segoe UI, sans-serif">
+  <title id="jT">Calibration customer journey</title>
+  <desc id="jD">From the calibration services page the customer can use the Quick Quote form, search models, or download the RMA form. The Quick Quote form asks how to send the equipment list, the service type, location and extras, and the customer receives a quote. The customer then chooses onsite calibration, or in-lab calibration with the RMA form and optional pickup and delivery. The calibration is performed to ISO/IEC 17025 and the customer receives a certificate with as-found and as-left data, sticker and seals, basic cleaning, and records kept indefinitely. Afterwards the Customer Portal shows due dates, reports, status and reminders, and a reminder notice starts the next cycle.</desc>
+  <defs>
+    <marker id="j" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#151515"/></marker>
+    <marker id="jm" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#5E6166"/></marker>
+  </defs>
+
+  <!-- stage bands -->
+  <g stroke="#E2E2DC" stroke-width="1.5" stroke-dasharray="2 4">
+    <line x1="36" x2="880" y1="430" y2="430"/>
+    <line x1="36" x2="880" y1="650" y2="650"/>
+    <line x1="36" x2="880" y1="900" y2="900"/>
+  </g>
+  <g font-size="13" font-weight="700" fill="#5E6166" letter-spacing=".04em">
+    <text x="40" y="22">1 · GET A QUOTE</text>
+    <text x="40" y="452">2 · SEND THE EQUIPMENT</text>
+    <text x="40" y="672">3 · CALIBRATE</text>
+    <text x="40" y="922">4 · AFTER THE SERVICE</text>
+  </g>
+
+  <!-- connectors -->
+  <g fill="none" stroke="#151515" stroke-width="1.5">
+    <path d="M450 92V112M165 112H735"/>
+    <path d="M165 112V134" marker-end="url(#j)"/>
+    <path d="M450 112V134" marker-end="url(#j)"/>
+    <path d="M735 112V134" marker-end="url(#j)"/>
+    <path d="M165 192V210H135V228" marker-end="url(#j)"/>
+    <path d="M230 268H248" marker-end="url(#j)"/>
+    <path d="M440 268H458" marker-end="url(#j)"/>
+    <path d="M650 268H668" marker-end="url(#j)"/>
+    <path d="M765 306V330H450V350" marker-end="url(#j)"/>
+    <path d="M450 408V454" marker-end="url(#j)"/>
+    <path d="M330 490H230V538" marker-end="url(#j)"/>
+    <path d="M570 490H670V538" marker-end="url(#j)"/>
+    <path d="M230 616V718H248" marker-end="url(#j)"/>
+    <path d="M670 616V718H652" marker-end="url(#j)"/>
+    <path d="M450 756V776M135 776H765"/>
+    <path d="M135 776V798" marker-end="url(#j)"/>
+    <path d="M345 776V798" marker-end="url(#j)"/>
+    <path d="M555 776V798" marker-end="url(#j)"/>
+    <path d="M765 776V798" marker-end="url(#j)"/>
+    <path d="M135 860V876M345 860V876M555 860V876M765 860V876M135 876H765"/>
+    <path d="M450 876V928" marker-end="url(#j)"/>
+    <path d="M450 1006V1034" marker-end="url(#j)"/>
+  </g>
+  <g fill="none" stroke="#5E6166" stroke-width="1.5" stroke-dasharray="5 4">
+    <path d="M860 164H882V578H822" marker-end="url(#jm)"/>
+    <path d="M300 1064H20V64H318" marker-end="url(#jm)"/>
+  </g>
+  <text x="852" y="570" text-anchor="middle" font-size="11" font-weight="600" fill="#5E6166">RMA</text>
+  <text x="14" y="600" font-size="13" font-weight="600" fill="#5E6166" transform="rotate(-90 14 600)" text-anchor="middle">next calibration cycle</text>
+
+  <!-- stage 1 -->
+  <rect x="320" y="36" width="260" height="56" fill="#151515"/>
+  <text x="450" y="60" text-anchor="middle" font-size="16" font-weight="700" fill="#FFE828">Calibration services page</text>
+  <text x="450" y="80" text-anchor="middle" font-size="13" fill="#D9D9D4">three ways to start</text>
+
+  <rect x="40" y="136" width="250" height="56" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="165" y="160" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Request a Quick Quote</text>
+  <text x="165" y="180" text-anchor="middle" font-size="13" fill="#5E6166">form at the bottom of the page</text>
+
+  <rect x="325" y="136" width="250" height="56" fill="#fff" stroke="#5E6166" stroke-width="1.5" stroke-dasharray="6 4"/>
+  <text x="450" y="160" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Model search</text>
+  <text x="450" y="180" text-anchor="middle" font-size="13" fill="#8A5A00">make and model · not yet verified</text>
+
+  <rect x="610" y="136" width="250" height="56" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="735" y="160" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Download RMA form</text>
+  <text x="735" y="180" text-anchor="middle" font-size="13" fill="#5E6166">to ship equipment to the lab</text>
+
+  <g>
+    <rect x="40" y="230" width="190" height="76" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+    <text x="135" y="253" text-anchor="middle" font-size="15" font-weight="700" fill="#151515">Equipment list</text>
+    <text x="135" y="273" text-anchor="middle" font-size="13" fill="#5E6166">upload a list, type it in,</text>
+    <text x="135" y="291" text-anchor="middle" font-size="13" fill="#5E6166">or message only</text>
+
+    <rect x="250" y="230" width="190" height="76" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+    <text x="345" y="253" text-anchor="middle" font-size="15" font-weight="700" fill="#151515">Service type</text>
+    <text x="345" y="273" text-anchor="middle" font-size="13" fill="#5E6166">In-Lab, Onsite,</text>
+    <text x="345" y="291" text-anchor="middle" font-size="13" fill="#5E6166">or Both to compare</text>
+
+    <rect x="460" y="230" width="190" height="76" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+    <text x="555" y="253" text-anchor="middle" font-size="15" font-weight="700" fill="#151515">Location</text>
+    <text x="555" y="273" text-anchor="middle" font-size="13" fill="#5E6166">US state, Canada,</text>
+    <text x="555" y="291" text-anchor="middle" font-size="13" fill="#5E6166">or Other</text>
+
+    <rect x="670" y="230" width="190" height="76" fill="#fff" stroke="#5E6166" stroke-width="1.5" stroke-dasharray="6 4"/>
+    <text x="765" y="253" text-anchor="middle" font-size="15" font-weight="700" fill="#151515">Printed catalog</text>
+    <text x="765" y="273" text-anchor="middle" font-size="13" fill="#5E6166">mailed on request,</text>
+    <text x="765" y="291" text-anchor="middle" font-size="13" fill="#5E6166">optional</text>
+  </g>
+
+  <rect x="300" y="352" width="300" height="56" fill="#FFF9C9" stroke="#151515" stroke-width="1.5"/>
+  <text x="450" y="376" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Quote from JM Test</text>
+  <text x="450" y="396" text-anchor="middle" font-size="13" fill="#5E6166">based on the list and service type</text>
+
+  <!-- stage 2 -->
+  <polygon points="330,490 450,456 570,490 450,524" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="450" y="495" text-anchor="middle" font-size="15" font-weight="600" fill="#151515">Which service?</text>
+  <text x="450" y="584" text-anchor="middle" font-size="12" fill="#5E6166">“Both” compares</text>
+  <text x="450" y="600" text-anchor="middle" font-size="12" fill="#5E6166">the two options</text>
+
+  <rect x="80" y="540" width="300" height="76" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="230" y="564" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Onsite</text>
+  <text x="230" y="584" text-anchor="middle" font-size="13" fill="#5E6166">at the customer’s site</text>
+  <text x="230" y="602" text-anchor="middle" font-size="13" fill="#5E6166">or in a mobile lab</text>
+
+  <rect x="520" y="540" width="300" height="76" fill="#fff" stroke="#151515" stroke-width="1.5"/>
+  <text x="670" y="564" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">In-lab</text>
+  <text x="670" y="584" text-anchor="middle" font-size="13" fill="#5E6166">shipped to an accredited lab</text>
+  <text x="670" y="602" text-anchor="middle" font-size="13" fill="#5E6166">pickup and delivery where available</text>
+
+  <!-- stage 3 -->
+  <rect x="250" y="680" width="400" height="76" fill="#151515"/>
+  <text x="450" y="704" text-anchor="middle" font-size="16" font-weight="700" fill="#FFE828">Calibration performed</text>
+  <text x="450" y="724" text-anchor="middle" font-size="13" fill="#D9D9D4">ISO/IEC 17025 (A2LA) · NIST traceable</text>
+  <text x="450" y="742" text-anchor="middle" font-size="13" fill="#D9D9D4">manufacturer, DoD or JM Test procedures</text>
+
+  <g>
+    <rect x="40" y="800" width="190" height="60" fill="#FFE828" stroke="#151515" stroke-width="1.5"/>
+    <text x="135" y="824" text-anchor="middle" font-size="15" font-weight="700" fill="#151515">Certificate</text>
+    <text x="135" y="844" text-anchor="middle" font-size="13" fill="#151515">as-found / as-left data</text>
+    <rect x="250" y="800" width="190" height="60" fill="#FFE828" stroke="#151515" stroke-width="1.5"/>
+    <text x="345" y="824" text-anchor="middle" font-size="15" font-weight="700" fill="#151515">Sticker and seals</text>
+    <text x="345" y="844" text-anchor="middle" font-size="13" fill="#151515">seals where they apply</text>
+    <rect x="460" y="800" width="190" height="60" fill="#FFE828" stroke="#151515" stroke-width="1.5"/>
+    <text x="555" y="824" text-anchor="middle" font-size="15" font-weight="700" fill="#151515">Basic cleaning</text>
+    <text x="555" y="844" text-anchor="middle" font-size="13" fill="#151515">of the instrument</text>
+    <rect x="670" y="800" width="190" height="60" fill="#FFE828" stroke="#151515" stroke-width="1.5"/>
+    <text x="765" y="824" text-anchor="middle" font-size="15" font-weight="700" fill="#151515">Records</text>
+    <text x="765" y="844" text-anchor="middle" font-size="13" fill="#151515">kept indefinitely</text>
+  </g>
+
+  <!-- stage 4 -->
+  <rect x="250" y="930" width="400" height="76" fill="#fff" stroke="#151515" stroke-width="2"/>
+  <text x="450" y="954" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Customer Portal · open 24/7</text>
+  <text x="450" y="974" text-anchor="middle" font-size="13" font-family="JetBrains Mono, monospace" fill="#5E6166">jmtest.com/portal</text>
+  <text x="450" y="992" text-anchor="middle" font-size="13" fill="#5E6166">due dates · reports · status · reminders</text>
+
+  <rect x="300" y="1036" width="300" height="56" fill="#FFF9C9" stroke="#151515" stroke-width="1.5"/>
+  <text x="450" y="1060" text-anchor="middle" font-size="16" font-weight="700" fill="#151515">Reminder notice</text>
+  <text x="450" y="1080" text-anchor="middle" font-size="13" fill="#5E6166">when the next calibration is due</text>
+</svg>
+</div>
+<div class="legend">
+  <span><i class="sw dark"></i>JM Test page or lab</span>
+  <span><i class="sw"></i>Customer step</span>
+  <span><i class="sw dash"></i>Optional or unverified</span>
+  <span><i class="sw yel"></i>What the customer receives</span>
+  <span><i class="sw soft"></i>Message to the customer</span>
+</div>
+
+<!-- =============== 2. QUOTE =============== -->
+<div class="section-head" id="quote"><h2><span>2</span>Getting a quote</h2><p>Three ways to start on the calibration page</p></div>
+<ul class="grid">
+  <li class="card"><span class="kicker">Main route</span><h4>Request a Quick Quote</h4><p>A form at the bottom of the page. The customer describes the equipment, picks a service type and location, and JM Test replies with a quote.</p></li>
+  <li class="card dash"><span class="kicker warn">To verify</span><h4>Model search</h4><p>The page says customers can search by make and model against thousands of models, from brands such as Fluke, Keithley and Anritsu.</p><p class="muted">The search box didn’t appear in the page text, so it may load separately. Not yet tested.</p></li>
+  <li class="card"><span class="kicker quiet">For in-lab</span><h4>Download RMA form</h4><p>Used when the customer ships equipment to the lab. It travels with the equipment so the lab knows what to do with it.</p></li>
+</ul>
+
+<h3 class="sub">Quick Quote form</h3>
+<div class="table-wrap"><table>
+  <thead><tr><th>Field</th><th>Choices</th><th>Notes</th></tr></thead>
+  <tbody>
+    <tr><td class="k">Equipment</td><td>Upload an equipment list · type the list in by hand · send a message without a list</td><td>One of the three. A message-only request suits customers who don’t have a list ready.</td></tr>
+    <tr><td class="k">Service type</td><td>In-Lab · Onsite · Both</td><td>“Both” asks for the two options side by side, to compare.</td></tr>
+    <tr><td class="k">Location</td><td>A US state · Canada · Other</td><td>Tells JM Test which lab or onsite team can serve the customer.</td></tr>
+    <tr><td class="k">Printed catalog</td><td>Yes / no</td><td>Optional. The catalog is mailed to the customer.</td></tr>
+  </tbody>
+</table></div>
+
+<!-- =============== 3. SERVICE =============== -->
+<div class="section-head" id="service"><h2><span>3</span>In-lab or onsite</h2><p>Two ways to get equipment calibrated</p></div>
+<ul class="grid two">
+  <li class="card"><span class="kicker">In-lab</span><h4>Equipment goes to the lab</h4><p>The equipment is calibrated at one of JM Test’s accredited labs. The customer ships it with the RMA form, or uses pickup and delivery where it’s available.</p><p class="muted">Best for: a few instruments, or equipment that can be out of service for a while.</p></li>
+  <li class="card"><span class="kicker">Onsite</span><h4>The lab comes to the customer</h4><p>Calibration at the customer’s site, or in a mobile lab. Onsite calibration has its own page with more detail.</p><p class="muted">Best for: many instruments, equipment that can’t be moved, or minimum downtime.</p></li>
+</ul>
+<p class="prose">Whichever the customer picks, the calibration, the paperwork and the portal afterwards are the same.</p>
+
+<!-- =============== 4. INCLUDED =============== -->
+<div class="section-head" id="included"><h2><span>4</span>What each calibration includes</h2><p>Standard with every calibration</p></div>
+<ul class="grid">
+  <li class="card"><span class="kicker">1</span><h4>Traceable calibration certificate</h4><p>Includes the readings before and after adjustment: the <b>as-found</b> and <b>as-left</b> data. As-found shows whether the instrument was out of tolerance before calibration.</p></li>
+  <li class="card"><span class="kicker">2</span><h4>Calibration sticker and seals</h4><p>A sticker on the instrument showing its calibration status, plus tamper seals where they apply.</p></li>
+  <li class="card"><span class="kicker">3</span><h4>Basic cleaning</h4><p>The instrument is given a basic clean as part of the service.</p></li>
+  <li class="card"><span class="kicker">4</span><h4>Records kept indefinitely</h4><p>Calibration history is never deleted, so the customer can always show an auditor past results.</p></li>
+  <li class="card"><span class="kicker">5</span><h4>Reminder when the next calibration is due</h4><p>A notice goes out ahead of the due date, which starts the next cycle of the journey.</p></li>
+</ul>
+
+<!-- =============== 5. PORTAL =============== -->
+<div class="section-head" id="portal"><h2><span>5</span>After the service</h2><p>Customer Portal, jmtest.com/portal</p></div>
+<p class="prose">The portal is open 24/7. It’s where the customer manages their calibrated equipment between visits.</p>
+<ul class="grid">
+  <li class="card"><h4>Intervals and due dates</h4><p>See each instrument’s calibration interval and when it’s next due.</p></li>
+  <li class="card"><h4>Print calibration reports</h4><p>Download and print certificates and reports, for audits or records.</p></li>
+  <li class="card"><h4>Equipment status</h4><p>See where each instrument is and what state it’s in.</p></li>
+  <li class="card"><h4>Due-date reminders</h4><p>Set up reminders for when calibration is coming due.</p></li>
+</ul>
+
+<!-- =============== 6. COVERAGE =============== -->
+<div class="section-head" id="coverage"><h2><span>6</span>Accreditation and coverage</h2><p>What the lab is accredited for and what it calibrates</p></div>
+<div class="table-wrap"><table>
+  <thead><tr><th>Standard</th><th>What it means for the customer</th></tr></thead>
+  <tbody>
+    <tr><td class="k">ISO/IEC 17025, accredited by A2LA</td><td>The lab’s competence has been independently assessed. Certificates are downloadable from the calibration page.</td></tr>
+    <tr><td class="k">Traceable to NIST</td><td>Measurements trace back to US national standards.</td></tr>
+    <tr><td class="k">ANSI/NCSL Z540-1</td><td>Meets a common US standard for calibration systems, often required by defense and aerospace customers.</td></tr>
+    <tr><td class="k">ISO 10012-1</td><td>Meets the international standard for measurement management.</td></tr>
+  </tbody>
+</table></div>
+
+<h3 class="sub">Equipment covered</h3>
+<ul class="chips">
+  <li>Pressure and vacuum<small>accredited to 30,000 PSI</small></li>
+  <li>Electronic</li>
+  <li>Fiber optic</li>
+  <li>Temperature</li>
+  <li>RF and microwave</li>
+  <li>Bio-medical</li>
+  <li>Electrical</li>
+  <li>Mechanical and dimensional<small>incl. torque, force, mass</small></li>
+</ul>
+
+<h3 class="sub">Procedures followed</h3>
+<p class="prose">Each calibration follows one of three sources: the <b>manufacturer’s procedure</b>, a <b>US Department of Defense (DoD)</b> procedure, or <b>JM Test’s own</b> procedure.</p>
+
+<!-- =============== 7. JMTEST.CA =============== -->
+<div class="section-head" id="jmtestca"><h2><span>7</span>What this means for jmtest.ca</h2><p>Where the journey meets the build</p></div>
+<p class="prose">The journey above describes the current JM Test calibration page. This is how each touchpoint lines up with the jmtest.ca data model, and what still needs deciding.</p>
+<div class="table-wrap"><table>
+  <thead><tr><th>Customer touchpoint</th><th>On jmtest.ca</th></tr></thead>
+  <tbody>
+    <tr><td class="k">Calibration with a product</td><td>The calibration add-on at checkout. The level (<code>nist</code> Standard NIST traceable or <code>iso17025</code> ISO 17025 accredited) comes from <code>catalog.calibration_rules</code>, and the price from <code>catalog.calibration_services</code>.</td></tr>
+    <tr><td class="k">RMA form</td><td>A web form rather than a download: the <code>rma-form</code> CMS block, <code>POST /api/rma</code>, saved to <code>commerce.rma_requests</code> and sent to the CRM as an RMA case.</td></tr>
+    <tr class="q"><td class="k">Quick Quote form</td><td>Not in the data model yet. Where should a calibration quote request go: the RFQ flow, the CRM, or the CMS Leads module? <span class="tag q">open</span></td></tr>
+    <tr class="q"><td class="k">Location field</td><td>The current form offers US states, Canada or Other. jmtest.ca would need Canadian provinces instead. <span class="tag q">open</span></td></tr>
+    <tr class="q"><td class="k">Customer Portal</td><td>Does jmtest.ca link to the same portal at jmtest.com/portal, or a Canadian one? <span class="tag q">open</span></td></tr>
+    <tr class="q"><td class="k">Accreditation scope</td><td>Confirm which of these accreditations and equipment ranges apply to the Canadian labs before stating them on jmtest.ca. <span class="tag q">open</span></td></tr>
+    <tr class="q"><td class="k">Language</td><td>jmtest.ca is English and French, so the form, the service descriptions and the reminder emails need French versions. <span class="tag q">open</span></td></tr>
+  </tbody>
+</table></div>
+<div class="callout warn"><b>Model search not yet verified</b>The page describes a make-and-model search, but it wasn’t visible in the page text and hasn’t been tested. Check whether it loads from a separate service before planning it for jmtest.ca.</div>
+
+<footer>JMtest integration docs · Calibration services. Describes the current JM Test calibration page from the customer’s side; section 7 is a working list for the jmtest.ca build.</footer>
+</div>
+</body>
+</html>
