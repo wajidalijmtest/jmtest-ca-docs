@@ -82,6 +82,7 @@ footer{margin-top:64px;border-top:1px solid var(--line);padding-top:16px;color:v
   <a class="logo" href="index.html"><b>JMtest</b>Integration docs</a>
   <nav aria-label="Sections">
     <a href="#docs">Flows</a>
+    <a href="data-model.html">Data model</a>
     <a href="#notes">Conventions</a>
   </nav>
 </div>
@@ -137,6 +138,15 @@ footer{margin-top:64px;border-top:1px solid var(--line);padding-top:16px;color:v
 /* To add a page: drop the .html file next to this one and add an entry here.
    Set status: "soon" for a placeholder card with no link. */
 const docs = [
+  {
+    title: "Data model",
+    area: "Reference",
+    system: "Postgres · all modules",
+    description: "Every table the flows read and write, with all columns, keys and what is proposed. Includes the 2026-11-19 currency and country revision.",
+    href: "data-model.html",
+    updated: "2026-11-20",
+    status: "live"
+  },
   {
     title: "Catalog",
     area: "Catalog",

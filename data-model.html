@@ -1,0 +1,947 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Data model · JMtest integration docs</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<!-- IBM Plex is kept only for the diagram, which renders exactly as in the original data model -->
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+<style>
+/* Layout: the jmtest.ca target diagram, with every Postgres box opened into a table card; a column reference follows. Same palette as the solution architecture page. */
+:root {
+  --bg: #f5f7fa;
+  --panel: #ffffff;
+  --fg: #142235;
+  --muted: #586579;
+  --rule: #d5dce6;
+  --brand: #264467;
+  --hi: #ffe828;
+  --new-bg: #fff4a6;
+  --new-row: #fff9cf;
+  --new-ink: #4f4300;
+  --chg-bg: #e3ecf7;
+  --code-bg: #eaeef4;
+  --warn-bg: #fdf1e2;
+  --warn-ink: #7a4300;
+  --grn-bg: #c9f2d4;
+  --grn-row: #d9f7e1;
+  --grn-line: #2e9e53;
+  --grn-ink: #0d4a26;
+  --display: "IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+/* Light only, matching the platform's no-dark-mode rule and the companion page. */
+:root { color-scheme: light; }
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--fg); font-family: var(--body); font-size: 15.5px; line-height: 1.6;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 0 64px;
+}
+.wrap { max-width: 1180px; margin: 0 auto; }
+.prose { max-width: 72ch; }
+header.top { border-bottom: 3px solid var(--brand); padding-block: 40px 22px; margin-bottom: 24px; position: relative; }
+header.top::after { content: ""; position: absolute; left: 0; bottom: -3px; width: 72px; height: 3px; background: var(--hi); }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(30px, 5vw, 44px); line-height: 1.08; margin: 8px 0 12px; color: var(--brand); text-wrap: balance; }
+h2 { font-family: var(--display); font-weight: 600; font-size: 26px; line-height: 1.2; margin: 48px 0 10px; color: var(--brand); text-wrap: balance; }
+h3 { font-family: var(--mono); font-weight: 600; font-size: 15px; margin: 0; overflow-wrap: anywhere; }
+p { margin: 0 0 12px; }
+.lede { font-size: 17px; max-width: 70ch; }
+.meta { display: flex; flex-wrap: wrap; gap: 6px 22px; font-size: 13.5px; color: var(--muted); }
+.meta b { color: var(--fg); font-weight: 500; }
+code { font-family: var(--mono); font-size: .88em; background: var(--code-bg); padding: 1px 5px; border-radius: 3px; overflow-wrap: anywhere; }
+
+.callout { background: var(--warn-bg); color: var(--warn-ink); border-radius: 4px; padding: 12px 16px; margin: 16px 0; font-size: 14.5px; max-width: 76ch; }
+.callout b { color: inherit; }
+.callout.grn { background: var(--grn-row); color: var(--grn-ink); border-left: 4px solid var(--grn-line); }
+.t-grn { background: var(--grn-bg); color: var(--grn-ink); border: 1px solid var(--grn-line); }
+.sw-grn { background: var(--grn-bg); border: 2px solid var(--grn-line); }
+.card.rev .frame { stroke: var(--grn-line); stroke-width: 2.2; }
+.card.rev .head { fill: var(--grn-bg); }
+.card.rev .tn, .card.rev .tg { fill: var(--grn-ink); }
+.card .rowgrn { fill: var(--grn-row); }
+.card .del { text-decoration: line-through; fill: var(--grn-ink); }
+.card .fn.grn { fill: var(--grn-ink); font-weight: 600; }
+tr.grncol td { background: var(--grn-row); }
+tr.delcol td.c, tr.delcol td.ty { text-decoration: line-through; color: var(--grn-ink); }
+.toc a.grn { background: var(--grn-row); border-color: var(--grn-line); color: var(--grn-ink); }
+.tbl.rev { border: 2px solid var(--grn-line); }
+
+.tag { display: inline-block; font-family: var(--mono); font-size: 11px; letter-spacing: .05em; text-transform: uppercase; padding: 1px 7px; border-radius: 3px; white-space: nowrap; vertical-align: middle; }
+.t-new { background: var(--new-bg); color: var(--new-ink); }
+.t-chg { background: var(--chg-bg); color: var(--brand); border: 1px dashed var(--brand); }
+.t-same { background: var(--code-bg); color: var(--muted); }
+
+figure { margin: 18px 0 10px; background: var(--panel); border: 1px solid var(--rule); border-radius: 4px; }
+.fig-bar { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 18px; padding: 12px 16px 0; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 13px; color: var(--muted); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.sw { width: 22px; height: 13px; border-radius: 2px; display: inline-block; }
+.sw-same { background: var(--panel); border: 1.5px solid var(--fg); }
+.sw-chg { background: var(--chg-bg); border: 1.5px dashed var(--brand); }
+.sw-new { background: var(--new-bg); border: 2px solid var(--brand); }
+.sw-row { background: var(--new-row); border: 1px solid #e6d77a; }
+.seg { display: inline-flex; border: 1px solid var(--rule); border-radius: 4px; overflow: hidden; }
+.seg button { font: 500 13px var(--body); color: var(--muted); background: var(--panel); border: 0; padding: 6px 12px; min-height: 32px; cursor: pointer; }
+.seg button + button { border-left: 1px solid var(--rule); }
+.seg button[aria-pressed="true"] { background: var(--brand); color: #fff; }
+.seg button:focus-visible { outline: 2px solid var(--brand); outline-offset: -2px; }
+.fig-scroll { overflow-x: auto; padding: 14px 14px 4px; }
+#diagram svg { display: block; width: 100%; min-width: 1060px; height: auto; color: var(--fg); }
+figcaption { font-size: 13.5px; color: var(--muted); padding: 8px 16px 14px; border-top: 1px solid var(--rule); }
+
+/* SVG vocabulary */
+.nd rect { fill: var(--panel); stroke: currentColor; stroke-width: 1.3; }
+.nd.chg rect { fill: var(--chg-bg); stroke: var(--brand); stroke-width: 1.6; stroke-dasharray: 5 3; }
+.nd.new rect { fill: var(--new-bg); stroke: var(--brand); stroke-width: 2; }
+.nd.new text { fill: var(--new-ink); }
+.grp { fill: none; stroke: var(--muted); stroke-width: 1; stroke-dasharray: 2 3; }
+svg text { fill: currentColor; font-family: var(--body); font-size: 12.5px; }
+svg .t { font-weight: 600; font-size: 13px; }
+svg .s { fill: var(--muted); font-size: 11.5px; }
+svg .g { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; fill: var(--muted); }
+
+.card .frame { fill: var(--panel); stroke: currentColor; stroke-width: 1.3; }
+.card.chg .frame { stroke: var(--brand); stroke-width: 1.6; stroke-dasharray: 5 3; }
+.card.new .frame { stroke: var(--brand); stroke-width: 2; }
+.card .head { fill: var(--code-bg); }
+.card.chg .head { fill: var(--chg-bg); }
+.card.new .head { fill: var(--new-bg); }
+.card .tn { font-family: var(--mono); font-size: 11.5px; font-weight: 600; fill: var(--fg); }
+.card.new .tn { fill: var(--new-ink); }
+.card .tg { font-family: var(--mono); font-size: 9.5px; letter-spacing: .06em; fill: var(--muted); }
+.card .sub { font-size: 10.5px; fill: var(--muted); font-style: italic; }
+.card .sep { stroke: var(--rule); stroke-width: 1; }
+.card .fn { font-family: var(--mono); font-size: 11px; fill: var(--fg); }
+.card .ft { font-family: var(--mono); font-size: 10.5px; fill: var(--muted); }
+.card .fk { font-family: var(--mono); font-size: 8.5px; font-weight: 600; letter-spacing: .04em; fill: var(--brand); }
+.card .rownew { fill: var(--new-row); }
+.card .more { font-size: 10.5px; fill: var(--muted); font-style: italic; }
+
+.ed { fill: none; stroke: var(--muted); stroke-width: 1.4; }
+.ed.hot { stroke: var(--brand); stroke-width: 2; }
+.ah { fill: var(--muted); }
+.ah-hot { fill: var(--brand); }
+.lbl { font-size: 11.5px; fill: var(--muted); paint-order: stroke; stroke: var(--panel); stroke-width: 5px; stroke-linejoin: round; }
+.lbl.hot { fill: var(--brand); font-weight: 500; }
+
+/* Column reference */
+.mod { margin-top: 30px; }
+.mod > h2 { margin-top: 40px; }
+.tbl { background: var(--panel); border: 1px solid var(--rule); border-radius: 4px; margin: 14px 0 18px; }
+.tbl-head { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 12px; padding: 12px 14px 4px; }
+.tbl-desc { font-size: 14px; color: var(--muted); padding: 0 14px 10px; margin: 0; max-width: 90ch; }
+.table-scroll { overflow-x: auto; border-top: 1px solid var(--rule); }
+table { border-collapse: collapse; width: 100%; font-size: 13.5px; }
+th, td { text-align: left; vertical-align: top; padding: 7px 12px; border-bottom: 1px solid var(--rule); }
+th { font-family: var(--mono); font-weight: 500; font-size: 11px; letter-spacing: .06em; text-transform: uppercase; color: var(--muted); background: var(--bg); white-space: nowrap; }
+tr:last-child td { border-bottom: 0; }
+td.c { font-family: var(--mono); font-size: 12.5px; white-space: nowrap; font-weight: 500; }
+td.ty { font-family: var(--mono); font-size: 12px; color: var(--muted); white-space: nowrap; }
+td.k { font-family: var(--mono); font-size: 11px; color: var(--brand); font-weight: 600; white-space: nowrap; }
+td.n { min-width: 260px; }
+tr.newcol td { background: var(--new-row); }
+.toc { display: flex; flex-wrap: wrap; gap: 6px 8px; margin: 10px 0 0; padding: 0; list-style: none; }
+.toc a { font-family: var(--mono); font-size: 12.5px; color: var(--brand); text-decoration: none; border: 1px solid var(--rule); background: var(--panel); border-radius: 3px; padding: 3px 8px; display: inline-flex; min-height: 26px; align-items: center; }
+.toc a:hover, .toc a:focus-visible { border-color: var(--brand); }
+a:focus-visible { outline: 2px solid var(--brand); outline-offset: 2px; }
+</style>
+<style>
+/* ===== Docs design (matches index.html and the flow pages) =====
+   Restyles the page around the diagram. The diagram itself is left exactly as it was:
+   the figure re-declares the original tokens and fonts, so the SVG, its legend and colors render unchanged. */
+:root{
+  --d-yellow:#FFE828; --d-yellow-soft:#FFF9C9; --d-white:#FFFFFF; --d-panel:#F6F6F3; --d-ink:#151515; --d-muted:#5E6166; --d-line:#E2E2DC;
+  --d-amber:#8A5A00; --d-amber-soft:#FFF4DB;
+  --d-sans:"Barlow", "Segoe UI", system-ui, sans-serif;
+  --d-mono:"JetBrains Mono", ui-monospace, Consolas, monospace;
+  /* page tokens point at the docs palette */
+  --bg:var(--d-white); --panel:var(--d-white); --fg:var(--d-ink); --muted:var(--d-muted); --rule:var(--d-line);
+  --brand:var(--d-ink); --code-bg:var(--d-panel); --new-bg:var(--d-yellow); --new-row:var(--d-yellow-soft); --new-ink:var(--d-ink);
+  --display:var(--d-sans); --body:var(--d-sans); --mono:var(--d-mono);
+}
+/* the diagram keeps its original look */
+figure{
+  --bg:#f5f7fa; --panel:#ffffff; --fg:#142235; --muted:#586579; --rule:#d5dce6; --brand:#264467; --code-bg:#eaeef4;
+  --new-bg:#fff4a6; --new-row:#fff9cf; --new-ink:#4f4300;
+  --display:"IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+#diagram{line-height:1.6;font-size:15.5px}
+
+html,body{margin:0}
+body{background:var(--d-white);color:var(--d-ink);font-family:var(--d-sans);font-size:17px;line-height:1.55;padding:0}
+.page{max-width:1180px;margin:0 auto;padding:40px 24px 96px}
+a{color:inherit}
+p{margin:0 0 12px}
+.home{display:inline-block;font-size:15px;font-weight:600;text-decoration:none;margin-bottom:20px;border-bottom:2px solid var(--d-yellow)}
+.home:hover{background:var(--d-yellow)}
+
+.page > header{border-left:8px solid var(--d-yellow);padding:4px 0 4px 24px;margin-bottom:32px}
+.brand{font-weight:700;font-size:15px;letter-spacing:.02em;margin:0 0 10px}
+.brand b{background:var(--d-yellow);color:var(--d-ink);padding:2px 8px;margin-right:8px}
+h1{font-family:var(--d-sans);font-size:44px;line-height:1.08;font-weight:700;margin:0;letter-spacing:-.01em;color:var(--d-ink)}
+.lede{color:var(--d-muted);margin:12px 0 0;max-width:72ch;font-size:17px}
+
+.facts{display:grid;grid-template-columns:repeat(4,1fr);border:1px solid var(--d-line);margin:0 0 20px}
+.facts div{padding:14px 16px;border-right:1px solid var(--d-line)}
+.facts div:last-child{border-right:0}
+.facts dt{font-size:13px;font-weight:600;color:var(--d-muted);margin:0}
+.facts dd{margin:2px 0 0;font-weight:600}
+
+.jump{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 40px;padding:0;list-style:none}
+.jump a{display:block;font-size:15px;font-weight:600;text-decoration:none;border:1px solid var(--d-line);padding:6px 12px}
+.jump a:hover{border-color:var(--d-ink)}
+.jump a span{color:var(--d-muted);font-weight:500;margin-right:6px}
+
+.section-head{display:flex;align-items:baseline;justify-content:space-between;gap:16px;border-bottom:2px solid var(--d-ink);padding-bottom:8px;margin:56px 0 20px;scroll-margin-top:20px}
+.section-head h2{font-family:var(--d-sans);font-size:30px;font-weight:700;margin:0;color:var(--d-ink);letter-spacing:0}
+.section-head h2 span{display:inline-block;background:var(--d-yellow);font-size:16px;padding:2px 8px;margin-right:10px;vertical-align:5px}
+.section-head p{margin:0;color:var(--d-muted);font-size:15px}
+.prose{color:var(--d-ink);max-width:72ch}
+code{font-family:var(--d-mono);font-size:.84em;background:var(--d-panel);padding:0 4px;border-radius:0}
+
+/* Callouts, as on the flow pages */
+.callout{background:var(--d-yellow-soft);color:var(--d-ink);border-left:4px solid var(--d-yellow);border-radius:0;padding:14px 18px;margin:16px 0 24px;font-size:16px;max-width:86ch}
+.callout > b:first-child{display:block;margin-bottom:2px}
+/* green keeps meaning "currency and country revision", matching the diagram legend */
+.callout.grn{background:var(--grn-row);color:var(--grn-ink);border-left:4px solid var(--grn-line);max-width:none}
+.callout .table-scroll{background:var(--d-white);border:1px solid rgba(46,158,83,.35) !important;margin:10px 0 !important}
+.callout .table-scroll table{background:var(--d-white) !important;font-size:14px !important}
+
+/* Diagram frame: docs card around the unchanged diagram */
+figure{background:#fff;border:1px solid var(--d-line);border-radius:0;margin:0 0 12px}
+.fig-bar{padding:14px 16px 0}
+.legend{font-family:var(--d-sans);font-size:14px;color:var(--d-muted)}
+.seg{border:1px solid var(--d-line);border-radius:0;background:var(--d-white)}
+.seg button{font:500 14px var(--d-sans);color:var(--d-muted);background:var(--d-white);padding:5px 12px;min-height:0}
+.seg button + button{border-left:1px solid var(--d-line)}
+.seg button:hover{color:var(--d-ink)}
+.seg button[aria-pressed="true"]{background:var(--d-ink);color:var(--d-white)}
+.seg button:focus-visible{outline:3px solid var(--d-yellow);outline-offset:0}
+figcaption{font-family:var(--d-sans);font-size:14px;color:var(--d-muted);border-top:1px solid var(--d-line);padding:10px 16px 14px}
+figcaption code{font-family:var(--d-mono);background:var(--d-panel)}
+
+/* Column reference chips */
+.toc{gap:6px 8px;margin:0 0 8px}
+.toc a{font-family:var(--d-mono);font-size:13px;color:var(--d-ink);background:var(--d-white);border:1px solid var(--d-line);border-radius:0;padding:3px 8px;min-height:0}
+.toc a:hover,.toc a:focus-visible{border-color:var(--d-ink)}
+.toc a.grn{background:var(--grn-row);border-color:var(--grn-line);color:var(--grn-ink)}
+
+/* Module headings inside the reference */
+.mod{margin-top:8px}
+.mod > h2{font-family:var(--d-sans);font-size:24px;font-weight:700;letter-spacing:0;color:var(--d-ink);margin:36px 0 4px;padding:0;border:0}
+.mod > .prose{color:var(--d-muted);font-size:15px}
+
+/* Table cards, like the flow pages' tables */
+.tbl{background:var(--d-white);border:1px solid var(--d-line);border-radius:0;margin:14px 0 20px;scroll-margin-top:20px}
+.tbl.rev{border:2px solid var(--grn-line)}
+.tbl-head{padding:12px 14px 4px;gap:6px 10px}
+h3{font-family:var(--d-mono);font-size:16px;font-weight:700}
+.tbl-desc{font-size:15px;color:var(--d-muted);padding:0 14px 12px;max-width:92ch}
+.table-scroll{border-top:1px solid var(--d-line)}
+table{font-size:15px}
+th{font-family:var(--d-sans);font-weight:600;font-size:13px;letter-spacing:0;text-transform:none;color:var(--d-muted);background:var(--d-panel);padding:9px 14px}
+td{padding:9px 14px;border-bottom:1px solid var(--d-line)}
+td.c{font-family:var(--d-mono);font-size:13px;font-weight:500}
+td.ty{font-family:var(--d-mono);font-size:12.5px;color:var(--d-muted)}
+td.k{font-family:var(--d-mono);font-size:12px;font-weight:700;color:var(--d-amber)}
+tr.newcol td{background:var(--d-yellow-soft)}
+
+/* Tags: docs shape; colors keep the diagram's meaning (new = yellow, changed = dashed blue, revision = green) */
+.tag{font-family:var(--d-sans);font-size:13px;font-weight:600;letter-spacing:0;text-transform:none;border-radius:0;padding:1px 8px}
+.t-new{background:var(--d-yellow);color:var(--d-ink)}
+.t-chg{background:#e3ecf7;color:#264467;border:1px dashed #264467}
+.t-same{background:none;color:var(--d-muted);border:1px solid var(--d-line);font-weight:500}
+
+/* Tables by flow */
+.flows{border:1px solid var(--d-line);overflow-x:auto;margin:0 0 16px}
+.flows table td a{font-weight:600}
+.flows td code{font-size:13px;white-space:nowrap}
+.flows td code a{text-decoration:none}
+.flows td code a:hover{text-decoration:underline}
+
+a:focus-visible{outline:3px solid var(--d-yellow);outline-offset:2px}
+footer{margin-top:64px;border-top:1px solid var(--d-line);padding-top:16px;color:var(--d-muted);font-size:14px}
+@media (max-width:720px){
+  h1{font-size:32px}
+  .facts{grid-template-columns:1fr 1fr}
+  .facts div{border-bottom:1px solid var(--d-line)}
+  .section-head{flex-direction:column;align-items:flex-start}
+}
+@media print{.seg,.home{display:none}}
+</style>
+</head>
+<body>
+<div class="page">
+
+<a class="home" href="index.html">← All docs</a>
+
+<header>
+  <p class="brand"><b>JMtest</b>Reference · jmtest.ca</p>
+  <h1>Data model: every table behind the flows</h1>
+  <p class="lede">The jmtest.ca target flow with every Postgres table opened up to its columns. Existing columns are read from the Drizzle schemas on this branch. Columns on new tables, and new columns on existing tables, are the proposal from the jmtest.ca solution architecture and are not migrated yet.</p>
+</header>
+
+<dl class="facts">
+  <div><dt>Date</dt><dd>2026-11-02</dd></div>
+  <div><dt>Base</dt><dd>feat/jmtest-ca @ 39b0002</dd></div>
+  <div><dt>Status</dt><dd>Draft for review</dd></div>
+  <div><dt>Revision</dt><dd>2026-11-19 · currency and country</dd></div>
+</dl>
+
+<ul class="jump">
+  <li><a href="#revision"><span>1</span>Currency and country revision</a></li>
+  <li><a href="#flow"><span>2</span>Flow with tables</a></li>
+  <li><a href="#flows"><span>3</span>Tables by flow</a></li>
+  <li><a href="#reference"><span>4</span>Column reference</a></li>
+</ul>
+
+<div class="callout"><b>What is real and what is proposed.</b> White and dashed-blue cards list columns that exist today. Yellow cards and yellow rows are proposed. The RMA columns are a first draft; the final list comes from the current jmtest RMA form. A few housekeeping columns (<code>created_at</code>, <code>updated_at</code>) are added to new tables by house convention and are marked as such in the reference below.</div>
+
+<!-- =============== 1. REVISION =============== -->
+<div class="section-head" id="revision"><h2><span>1</span>Currency and country revision</h2><p>2026-11-19</p></div>
+<div class="callout grn"><b>Revision 2026-11-19: currency and country normalization.</b> Everything highlighted in green is part of this revision. The rule it applies: no column name carries a currency (<code>_cad</code>, <code>_usd</code>) or a country (<code>_ca</code>, <code>_us</code>). Those values become rows keyed by <code>currency_code</code> or <code>country_code</code>, both backed by a reference table. Fixed per-currency price columns (<code>list_price_usd</code>, <code>list_price_cad</code>, <code>price_cad</code>, <code>price_usd</code>) are removed and shown struck through. Prices now live in rows: <code>catalog.currencies</code> is the reference list of supported currencies, <code>catalog.product_prices</code> holds one price per product per currency, <code>catalog.product_rental_prices</code> holds the rate and deposit of each rental tier per currency, and <code>catalog.calibration_prices</code> does the same for calibration services. Every money column in the model now has a currency next to it: price tables carry <code>currency_code</code> in their key, the cart, quote and order lines snapshot the currency with the price, and the staging extract states the currency of its prices. Adding a currency later is an insert into <code>catalog.currencies</code> plus price rows, with no schema migration.
+<br><br><b>Countries.</b> <code>catalog.countries</code> is the reference list of markets (CA, US), each with its default currency. The country-suffixed product columns (<code>lead_time_days_us</code>, <code>lead_time_days_ca</code>, <code>available_in_ca</code>, <code>rental_units_available_ca</code>) and the country-specific switches (<code>sale_enabled</code>, <code>rental_enabled</code>, <code>in_stock</code>) move to <code>catalog.product_availability</code>, one row per product per country. The free-text <code>region</code> columns on rental rates and RMA requests become <code>country_code</code> with a reference to <code>catalog.countries</code>. Opening a new market is an insert into <code>catalog.countries</code> plus availability and price rows.</div>
+
+<div class="callout grn"><b>Worked example.</b> One rental product, SKU <code>MEG-5KV</code>, sold in CAD and USD and rented by the day:
+<div class="table-scroll" style="margin-top:8px;border:0"><table style="background:#fff;font-size:12.5px">
+<thead><tr><th>Table</th><th>Key</th><th>amount</th><th>deposit</th></tr></thead><tbody>
+<tr><td class="c">product_prices</td><td class="ty">MEG-5KV · CAD · list</td><td>1,850.00</td><td></td></tr>
+<tr><td class="c">product_prices</td><td class="ty">MEG-5KV · USD · list</td><td>1,349.00</td><td></td></tr>
+<tr><td class="c">product_rental_prices</td><td class="ty">MEG-5KV · CA · day · CAD</td><td>35.00</td><td>500.00</td></tr>
+<tr><td class="c">product_rental_prices</td><td class="ty">MEG-5KV · CA · day · USD</td><td>20.00</td><td>350.00</td></tr>
+</tbody></table></div>
+<div class="table-scroll" style="margin-top:8px;border:0"><table style="background:#fff;font-size:12.5px">
+<thead><tr><th>product_availability key</th><th>sale_enabled</th><th>rental_enabled</th><th>lead_time_days</th><th>rental_units_available</th></tr></thead><tbody>
+<tr><td class="ty">MEG-5KV · CA</td><td>true</td><td>true</td><td>5</td><td>4</td></tr>
+<tr><td class="ty">MEG-5KV · US</td><td>true</td><td>false</td><td>3</td><td></td></tr>
+</tbody></table></div>
+The rental tier itself (minimum 3 days, BC item number, status) is one row in <code>product_rental_rates</code>. jmtest.ca reads <code>countries</code> row CA, gets CAD as its currency, and picks the CA availability row and the CAD price rows. Figures are illustrative.</div>
+
+<!-- =============== 2. DIAGRAM =============== -->
+<section id="flow">
+<div class="section-head"><h2><span>2</span>Flow with tables</h2><p>Postgres, one database, schema per module</p></div>
+<figure>
+  <div class="fig-bar">
+    <div class="legend">
+      <span><i class="sw sw-same"></i>Unchanged</span>
+      <span><i class="sw sw-chg"></i>Changed</span>
+      <span><i class="sw sw-new"></i>New</span>
+      <span><i class="sw sw-row"></i>New column</span>
+      <span><i class="sw sw-grn"></i>Currency and country revision</span>
+    </div>
+    <div class="seg" role="group" aria-label="Columns shown in the diagram">
+      <button type="button" id="mode-all" aria-pressed="true">All columns</button>
+      <button type="button" id="mode-keys" aria-pressed="false">Keys and changes</button>
+    </div>
+  </div>
+  <div class="fig-scroll" id="diagram"></div>
+  <figcaption>PK, FK and UQ mark primary keys, references and unique keys. References inside a module are drawn as column notes rather than lines. Across modules they are string ids with no database foreign key (CLAUDE.md §2). Hover a column for its note. <code>calibration_rules</code> is maintained by the calibration lab through a Studio view and <code>product_erp_refs</code> by the JMTS IT mapping, so neither has an inbound job arrow. <code>catalog.currencies</code> is reference data seeded by migration and maintained in Studio, so it has no inbound job arrow either; the same goes for <code>catalog.countries</code>.</figcaption>
+</figure>
+</section>
+
+<!-- =============== 3. BY FLOW =============== -->
+<div class="section-head" id="flows"><h2><span>3</span>Tables by flow</h2><p>Where each documented flow reads and writes</p></div>
+<p class="prose">Each table name jumps to its columns in §4.</p>
+<div class="flows"><table>
+  <thead><tr><th>Flow</th><th>Writes</th><th>Reads</th></tr></thead>
+  <tbody>
+    <tr><td><a href="catalog.html">Catalog</a></td><td><code><a href="#t-products">catalog.products</a></code>, <code><a href="#t-product-prices">catalog.product_prices</a></code>, <code><a href="#t-availability">catalog.product_availability</a></code>, <code><a href="#t-rental-rates">catalog.product_rental_rates</a></code>, <code><a href="#t-rental-prices">catalog.product_rental_prices</a></code>, <code><a href="#t-cal-services">catalog.calibration_services</a></code>, <code><a href="#t-cal-service-prices">catalog.calibration_prices</a></code></td><td><code><a href="#t-staging-item-code">staging.item_code</a></code>, <code><a href="#t-erp-refs">catalog.product_erp_refs</a></code>, <code><a href="#t-currencies">catalog.currencies</a></code>, <code><a href="#t-countries">catalog.countries</a></code></td></tr>
+    <tr><td><a href="sales-quote-creation-flow.html">Sales quote creation</a></td><td><code><a href="#t-quote-items">commerce.quote_items</a></code>, <code><a href="#t-outbox">commerce.integration_outbox</a></code></td><td><code><a href="#t-erp-refs">catalog.product_erp_refs</a></code>, <code><a href="#t-product-prices">catalog.product_prices</a></code></td></tr>
+    <tr><td><a href="orders.html">Orders</a></td><td><code><a href="#t-cart-items">commerce.cart_items</a></code>, <code><a href="#t-order-items">commerce.order_items</a></code>, <code><a href="#t-outbox">commerce.integration_outbox</a></code></td><td><code><a href="#t-product-prices">catalog.product_prices</a></code>, <code><a href="#t-availability">catalog.product_availability</a></code>, <code><a href="#t-erp-refs">catalog.product_erp_refs</a></code>, <code><a href="#t-cal-service-prices">catalog.calibration_prices</a></code></td></tr>
+    <tr><td><a href="rental-items.html">Rental items</a></td><td>Rental request (proposed in the flow, not in this model yet), <code><a href="#t-outbox">commerce.integration_outbox</a></code></td><td><code><a href="#t-availability">catalog.product_availability</a></code>, <code><a href="#t-rental-rates">catalog.product_rental_rates</a></code>, <code><a href="#t-rental-prices">catalog.product_rental_prices</a></code>, <code><a href="#t-erp-refs">catalog.product_erp_refs</a></code></td></tr>
+    <tr><td><a href="calibration-services.html">Calibration services</a></td><td><code><a href="#t-rma-requests">commerce.rma_requests</a></code>, <code><a href="#t-rma-items">commerce.rma_items</a></code>, <code><a href="#t-rma-attachments">commerce.rma_attachments</a></code></td><td><code><a href="#t-cal-rules">catalog.calibration_rules</a></code>, <code><a href="#t-cal-services">catalog.calibration_services</a></code>, <code><a href="#t-cal-service-prices">catalog.calibration_prices</a></code></td></tr>
+  </tbody>
+</table></div>
+
+<!-- =============== 4. REFERENCE =============== -->
+<section id="reference">
+<div class="section-head"><h2><span>4</span>Column reference</h2><p>Grouped by module schema</p></div>
+<p class="prose">Every table in the diagram, grouped by module schema. Types are Postgres types. Proposed types are a starting point for the migration, not a decision.</p>
+<ul class="toc" id="toc"></ul>
+<div id="ref"></div>
+</section>
+
+<footer>JMtest integration docs · Data model. jmtest.ca data model, draft 2026-11-02, base feat/jmtest-ca @ 39b0002, revision 2026-11-19. Yellow tables and rows are proposed; green is the currency and country revision. Nothing here is migrated yet.</footer>
+</div>
+
+<script>
+// f(name, type, key, note, flags): key is 'PK' | 'FK' | 'UQ' | 'PK FK' | ''; flags: '+' new column, 'k' shown in the keys view, 'c' house convention,
+// multi-currency revision (green): 'g' added in this revision, 'm' changed in this revision, '-' removed in this revision
+const f = (n, t, k = '', note = '', fl = '') => ({ n, t, k, note, fl });
+const TS = 'timestamptz';
+const ADDED_LINE_COLS = (self) => [
+  f('line_type', 'varchar(16)', '', "'purchase' | 'rental' | 'calibration'. Default 'purchase'.", '+'),
+  f('parent_line_id', 'uuid null', 'FK', `→ ${self}.id. Required when line_type = 'calibration', and the parent must be a purchase line.`, '+'),
+  f('calibration_level', 'varchar(16) null', '', "'nist' | 'iso17025'. Calibration lines only.", '+'),
+  f('rental_start', 'date null', '', 'Rental lines only.', '+'),
+  f('rental_end', 'date null', '', 'Rental lines only.', '+'),
+  f('currency_code', 'varchar(3)', 'FK', '→ catalog.currencies.code. Currency of the line price, captured with the price snapshot so a line is never read without its currency.', '+g'),
+];
+
+const T = {
+  staging_item_code: {
+    name: 'staging.item_code', kind: 'same', mod: 'staging',
+    sub: 'pushed by JMTS IT, read by erp-sync',
+    desc: 'Landing table for the ERP item extract. Same push contract as Vaetrix (docs/infra/staging-item-code.sql). Unique on (item_code, warehouse_code, load_batch_id).',
+    fields: [
+      f('id', 'bigint identity', 'PK'),
+      f('item_code', 'text', 'UQ', 'ItemCode. Part of the unique key.', 'k'),
+      f('item_code_desc', 'text', '', 'ItemCodeDesc'),
+      f('product_line', 'text', '', 'ProductLine'),
+      f('product_type', 'text', '', 'ProductType'),
+      f('category', 'text', '', 'ItemCategory / Category1'),
+      f('sales_uom', 'text', '', 'SalesUnitOfMeasure'),
+      f('standard_price', 'numeric(18,4)', '', 'StandardUnitPrice'),
+      f('suggested_retail', 'numeric(18,4)', '', 'SuggestedRetailPrice'),
+      f('last_total_unit_cost', 'numeric(18,4)', '', 'LastTotalUnitCost'),
+      f('currency_code', 'text', '', "Multi-currency revision, proposed addition to the push contract (JMTS IT to confirm). Currency of standard_price, suggested_retail and last_total_unit_cost, so erp-sync writes the right product_prices row instead of assuming one.", '+g'),
+      f('quantity_on_hand', 'numeric(18,4)', '', 'Per warehouse. Null means unknown.'),
+      f('warehouse_code', 'text', 'UQ', 'Part of the unique key.', 'k'),
+      f('item_status', 'text', '', 'Active / Inactive'),
+      f('raw', 'jsonb', '', 'Full source record, unmapped fields.'),
+      f('source_system', 'text', '', "Default 'SAGE100'."),
+      f('load_batch_id', 'uuid', 'UQ', 'One id per push run. Part of the unique key.', 'k'),
+      f('row_hash', 'text', '', 'Hash of business columns for change detection.'),
+      f('extracted_at', TS),
+      f('loaded_at', TS, '', 'Default now().'),
+      f('processed', 'boolean', '', 'Default false. Partial index on unprocessed rows.', 'k'),
+      f('processed_at', TS),
+    ],
+  },
+  products: {
+    name: 'catalog.products', kind: 'chg', mod: 'catalog',
+    sub: 'written by erp-sync + seed, read by apps/web',
+    desc: 'One row per storefront SKU, holding only what is true in every country. This revision removes all currency- and country-suffixed columns: prices are in catalog.product_prices (per currency) and availability, lead time and the buy / rent switches are in catalog.product_availability (per country).',
+    fields: [
+      f('sku', 'varchar(64)', 'PK'),
+      f('brand_id', 'varchar(32)', '', "'jmtest' for jmtest.ca.", 'k'),
+      f('slug', 'varchar(128)', '', '', 'k'),
+      f('category_id', 'varchar(64)', 'FK', '→ catalog.categories.id', 'k'),
+      f('product_line', 'varchar(64)'),
+      f('status', 'varchar(16)', '', '', 'k'),
+      f('is_calibrated', 'boolean'),
+      f('is_hazmat', 'boolean'),
+      f('weight_lb', 'numeric(8,3)'),
+      f('weight_kg', 'numeric(8,3)'),
+      f('lead_time_days_us', 'smallint', '', 'Removed. Moved to catalog.product_availability.lead_time_days, row country_code = US.', '-'),
+      f('lead_time_days_ca', 'smallint', '', 'Removed. Moved to catalog.product_availability.lead_time_days, row country_code = CA.', '-'),
+      f('list_price_usd', 'numeric(12,2)', '', 'Removed. Moved to catalog.product_prices as a row with currency_code = USD.', '-'),
+      f('list_price_cad', 'numeric(12,2)', '', 'Removed. Moved to catalog.product_prices as a row with currency_code = CAD (from the BC Custom API item price endpoint).', '-'),
+      f('available_in_ca', 'boolean', '', 'Removed. Merged into catalog.product_availability.sale_enabled, row country_code = CA (from BC item availability).', '-'),
+      f('in_stock', 'boolean', '', 'Removed. Stock is held per country, so it moves to catalog.product_availability.in_stock.', '-'),
+      f('tags', 'jsonb'),
+      f('specs', 'jsonb', '', 'Spec values feed the calibration range rules.'),
+      f('media', 'jsonb'),
+      f('attributes', 'jsonb', '', 'Configurable options. Priced by product_price_matrix (§5.6).'),
+      f('vendor_sku', 'varchar(64)'),
+      f('is_digital_delivery', 'boolean'),
+      f('hazmat_note', 'text'),
+      f('superseded_by', 'varchar(64)'),
+      f('live_on_legacy_site', 'boolean'),
+      f('ribbon_tag', 'text'),
+      f('created_at', TS),
+      f('updated_at', TS),
+      f('sale_enabled', 'boolean', '', 'Removed from the earlier proposal. Whether an item is sold depends on the country, so it moves to catalog.product_availability.', '-'),
+      f('rental_enabled', 'boolean', '', 'Removed from the earlier proposal. Moves to catalog.product_availability.', '-'),
+      f('rental_units_available_ca', 'integer null', '', 'Removed from the earlier proposal. Moves to catalog.product_availability.rental_units_available, row country_code = CA.', '-'),
+    ],
+  },
+  currencies: {
+    name: 'catalog.currencies', kind: 'new', rev: true, mod: 'catalog',
+    sub: 'reference data, seeded by migration, edited in Studio',
+    desc: 'Multi-currency revision. One row per currency the platform can price in. Seeded with CAD and USD. A new currency is an insert here plus its price rows, never a new column.',
+    fields: [
+      f('code', 'varchar(3)', 'PK', "ISO 4217 code, for example 'CAD', 'USD', 'EUR'."),
+      f('name', 'text', '', 'Display name, for example Canadian Dollar.'),
+      f('symbol', 'varchar(8)', '', "For example '$' or '€'. Locale formatting still comes from Intl.NumberFormat."),
+      f('decimal_places', 'smallint', '', 'Default 2. Rounding and display precision for amounts in this currency.'),
+      f('is_active', 'boolean', '', 'Default true. Inactive currencies are kept for history but cannot be selected for new prices or carts.'),
+      f('sort_order', 'smallint', '', 'Order in admin pickers.'),
+      f('created_at', TS, '', 'House convention.', 'c'),
+      f('updated_at', TS, '', 'House convention.', 'c'),
+    ],
+  },
+  countries: {
+    name: 'catalog.countries', kind: 'new', rev: true, mod: 'catalog',
+    sub: 'reference data, seeded by migration, edited in Studio',
+    desc: 'This revision. One row per country the platform sells, rents or services in. Seeded with CA and US. Replaces the _ca / _us suffixes and the free-text region columns. A new market is an insert here, never a new column.',
+    fields: [
+      f('code', 'varchar(2)', 'PK', "ISO 3166-1 alpha-2, for example 'CA', 'US'."),
+      f('name', 'text', '', 'Display name.'),
+      f('default_currency_code', 'varchar(3)', 'FK', '→ catalog.currencies.code. The currency a storefront in this country prices in, for example CA → CAD.'),
+      f('is_active', 'boolean', '', 'Default true.'),
+      f('sort_order', 'smallint'),
+      f('created_at', TS, '', 'House convention.', 'c'),
+      f('updated_at', TS, '', 'House convention.', 'c'),
+    ],
+  },
+  product_prices: {
+    name: 'catalog.product_prices', kind: 'new', rev: true, mod: 'catalog',
+    sub: 'written by erp-sync, read by apps/web',
+    desc: 'Multi-currency revision. Replaces products.list_price_usd and products.list_price_cad. One row per product, currency and price type. A product with no row for the storefront currency is not priced in that currency: it shows Request a quote and is never converted on the fly. Seeding is replace-not-merge per SKU and source, same rule as the price matrix.',
+    fields: [
+      f('sku', 'varchar(64)', 'PK FK', '→ catalog.products.sku'),
+      f('currency_code', 'varchar(3)', 'PK FK', '→ catalog.currencies.code'),
+      f('price_type', 'varchar(16)', 'PK', "Default 'list'. Room for 'sale' or 'msrp' later without new columns."),
+      f('amount', 'numeric(12,2)', '', 'The price in currency_code. Check amount >= 0.'),
+      f('source_system', 'varchar(16)', '', "'BC' | 'SAGE100' | 'manual'. CAD comes from the BC Custom API item price endpoint; BC is required for jmtest."),
+      f('erp_status', 'varchar(16)', '', "'active' | 'inactive', same meaning as on the price matrix."),
+      f('valid_from', TS + ' null', '', 'Optional. Lets a scheduled price change be loaded ahead of time.'),
+      f('synced_at', TS),
+      f('created_at', TS, '', 'House convention.', 'c'),
+      f('updated_at', TS, '', 'House convention.', 'c'),
+    ],
+  },
+  availability: {
+    name: 'catalog.product_availability', kind: 'new', rev: true, mod: 'catalog',
+    sub: 'written by erp-sync, read by apps/web',
+    desc: 'This revision. Everything about a product that depends on the country: whether it is sold or rented there, stock, lead time and rental fleet count. Replaces lead_time_days_us, lead_time_days_ca, available_in_ca, in_stock, sale_enabled, rental_enabled and rental_units_available_ca on catalog.products. No row for a country means the product is not offered there. Both switches true shows the Buy / Rent switch.',
+    fields: [
+      f('sku', 'varchar(64)', 'PK FK', '→ catalog.products.sku'),
+      f('country_code', 'varchar(2)', 'PK FK', '→ catalog.countries.code'),
+      f('sale_enabled', 'boolean', '', 'Default true. Item present in the ERP for this country and not blocked for sale.'),
+      f('rental_enabled', 'boolean', '', 'Default false. Item present in the rental fleet for this country.'),
+      f('in_stock', 'boolean null', '', 'Null means unknown.'),
+      f('lead_time_days', 'smallint null'),
+      f('rental_units_available', 'integer null', '', 'From the rental fleet. Null means unknown, never zero.'),
+      f('source_system', 'varchar(16)', '', "'BC' for CA, 'SAGE100' for US."),
+      f('synced_at', TS),
+    ],
+  },
+  rental_rates: {
+    name: 'catalog.product_rental_rates', kind: 'new', mod: 'catalog',
+    sub: 'written by erp-sync from BC rental items',
+    desc: 'One row per rate tier (SKU, country, period). A table rather than columns because the number of tiers is a BC decision. This revision: the tier keeps its terms (minimum periods, BC item, status); the money moves to catalog.product_rental_prices, one row per currency. Seeding is replace-not-merge per SKU, same rule as the price matrix.',
+    fields: [
+      f('sku', 'varchar(64)', 'PK FK', '→ catalog.products.sku'),
+      f('country_code', 'varchar(2)', 'PK FK', "→ catalog.countries.code. Renamed from region, now a real reference. 'CA' for jmtest.ca.", 'm'),
+      f('period', 'varchar(8)', 'PK', "'day' | 'week' | 'month'"),
+      f('rate', 'numeric(12,2)', '', 'Removed. Moved to catalog.product_rental_prices.amount, one row per currency.', '-'),
+      f('currency', 'varchar(3)', '', 'Removed. Replaced by catalog.product_rental_prices.currency_code.', '-'),
+      f('min_periods', 'smallint', '', 'Minimum term in periods. Same in every currency.'),
+      f('deposit', 'numeric(12,2) null', '', 'Removed. Moved to catalog.product_rental_prices.deposit, so the deposit is in the same currency as the rate.', '-'),
+      f('bc_item_no', 'text', '', 'BC rental item number.'),
+      f('erp_status', 'varchar(16)', '', "'active' | 'inactive', same meaning as on the price matrix."),
+      f('synced_at', TS),
+    ],
+  },
+  rental_prices: {
+    name: 'catalog.product_rental_prices', kind: 'new', rev: true, mod: 'catalog',
+    sub: 'written by erp-sync, read by apps/web',
+    desc: 'Multi-currency revision. The price of a rental tier in each currency. Example: a day rate of 35 CAD and 20 USD is two rows for the same (sku, country_code, period). A tier with no row for the storefront currency is not offered for rent in that currency. Prices are loaded, never converted.',
+    fields: [
+      f('sku', 'varchar(64)', 'PK FK', '→ catalog.product_rental_rates (sku, country_code, period)'),
+      f('country_code', 'varchar(2)', 'PK FK', 'Part of the reference to the rate tier. Renamed from region.', 'm'),
+      f('period', 'varchar(8)', 'PK FK', 'Part of the reference to the rate tier.'),
+      f('currency_code', 'varchar(3)', 'PK FK', '→ catalog.currencies.code'),
+      f('amount', 'numeric(12,2)', '', 'Rate per period in currency_code. Check amount >= 0.'),
+      f('deposit', 'numeric(12,2) null', '', 'Refundable deposit in the same currency. Null means no deposit.'),
+      f('source_system', 'varchar(16)', '', "'BC' | 'manual'"),
+      f('erp_status', 'varchar(16)', '', "'active' | 'inactive'"),
+      f('synced_at', TS),
+    ],
+  },
+  erp_refs: {
+    name: 'catalog.product_erp_refs', kind: 'new', mod: 'catalog',
+    sub: 'JMTS IT mapping, read by erp-sync',
+    desc: 'Crosswalk between a storefront SKU and its ERP records. A product sold and the same product rented are usually two BC records. BC numbers with no row here are reported, not inserted.',
+    fields: [
+      f('sku', 'varchar(64)', 'PK FK', '→ catalog.products.sku'),
+      f('source_system', 'varchar(16)', 'PK', "'SAGE100' | 'BC'"),
+      f('role', 'varchar(16)', 'PK', "'sale' | 'rental' | 'calibration'"),
+      f('native_number', 'text', 'UQ', 'The ERP item number. Unique per (source_system, native_number).'),
+    ],
+  },
+  cal_services: {
+    name: 'catalog.calibration_services', kind: 'new', mod: 'catalog',
+    sub: 'written by erp-sync from BC service items',
+    desc: 'The calibration service items. Prices come from BC and, after the multi-currency revision, live in catalog.calibration_prices; JMTS maintains only the mapping in calibration_rules.',
+    fields: [
+      f('id', 'uuid', 'PK'),
+      f('level', 'varchar(16)', '', "'nist' (Standard NIST traceable) | 'iso17025' (ISO 17025 accredited)"),
+      f('bc_item_no', 'text', 'UQ', 'BC service item number.'),
+      f('price_cad', 'numeric(12,2)', '', 'Removed. Moved to catalog.calibration_prices.', '-'),
+      f('price_usd', 'numeric(12,2) null', '', 'Removed. Moved to catalog.calibration_prices.', '-'),
+      f('erp_status', 'varchar(16)'),
+    ],
+  },
+  cal_service_prices: {
+    name: 'catalog.calibration_prices', kind: 'new', rev: true, mod: 'catalog',
+    sub: 'written by erp-sync from BC service items',
+    desc: 'Multi-currency revision. Replaces calibration_services.price_cad and price_usd. One row per service and currency. A calibration add-on is offered in a currency only when its service has a row for that currency.',
+    fields: [
+      f('calibration_service_id', 'uuid', 'PK FK', '→ catalog.calibration_services.id'),
+      f('currency_code', 'varchar(3)', 'PK FK', '→ catalog.currencies.code'),
+      f('amount', 'numeric(12,2)'),
+      f('erp_status', 'varchar(16)'),
+      f('synced_at', TS),
+    ],
+  },
+  cal_rules: {
+    name: 'catalog.calibration_rules', kind: 'new', mod: 'catalog',
+    sub: 'maintained by the calibration lab in Studio',
+    desc: 'Which calibration service applies to which product. Resolution order: product override, then category plus spec range, then category default. No match hides the add-on and lists the product as uncovered.',
+    fields: [
+      f('id', 'uuid', 'PK'),
+      f('category_id', 'varchar(64)', 'FK', '→ catalog.categories.id'),
+      f('sku', 'varchar(64) null', 'FK', '→ catalog.products.sku. Set only for a product override.'),
+      f('spec_attribute', 'text null', '', 'Spec key the range applies to, for example test voltage.'),
+      f('range_min', 'numeric null'),
+      f('range_max', 'numeric null'),
+      f('unit', 'text null', '', 'Unit of range_min / range_max, for example kV.'),
+      f('level', 'varchar(16)', '', "'nist' | 'iso17025'"),
+      f('calibration_service_id', 'uuid null', 'FK', '→ catalog.calibration_services.id. Null when offered is false.'),
+      f('offered', 'boolean', '', 'False marks a product or range as not offered.'),
+      f('priority', 'smallint', '', 'Breaks ties between rules at the same level.'),
+    ],
+  },
+  cart_items: {
+    name: 'commerce.cart_items', kind: 'chg', mod: 'commerce',
+    sub: 'r/w by apps/web',
+    desc: 'Cart lines. Gains the line model shared with quote and order items. Price is re-resolved on every read.',
+    fields: [
+      f('id', 'uuid', 'PK'),
+      f('cart_id', 'uuid', 'FK', '→ commerce.carts.id'),
+      f('sku', 'varchar(64)', '', '', 'k'),
+      f('quantity', 'integer', '', 'Calibration child quantity always equals the parent quantity.', 'k'),
+      f('unit_price_snapshot', 'numeric(12,2)'),
+      f('attributes_snapshot', 'jsonb'),
+      f('created_at', TS),
+      f('updated_at', TS),
+      ...ADDED_LINE_COLS('commerce.cart_items'),
+    ],
+  },
+  quote_items: {
+    name: 'commerce.quote_items', kind: 'chg', mod: 'commerce',
+    sub: 'written by apps/web (RFQ)',
+    desc: 'RFQ lines. A cart with a rental line is submitted as an RFQ, so rental lines land here.',
+    fields: [
+      f('id', 'uuid', 'PK'),
+      f('quote_id', 'uuid', 'FK', '→ commerce.quotes.id'),
+      f('sku', 'varchar(64)', '', '', 'k'),
+      f('variant_sku', 'varchar(64)'),
+      f('quantity', 'integer', '', '', 'k'),
+      f('unit_price_snapshot', 'numeric(12,2)'),
+      f('attributes_snapshot', 'jsonb'),
+      f('item_notes', 'text'),
+      f('created_at', TS),
+      ...ADDED_LINE_COLS('commerce.quote_items'),
+    ],
+  },
+  order_items: {
+    name: 'commerce.order_items', kind: 'chg', mod: 'commerce',
+    sub: 'written by apps/web (Stripe checkout)',
+    desc: 'Paid order lines. Direct-buy accepts purchase and calibration lines only; a rental line returns 409 from checkout/intent.',
+    fields: [
+      f('id', 'uuid', 'PK'),
+      f('order_id', 'uuid', 'FK', '→ commerce.orders.id'),
+      f('sku', 'varchar(64)', '', '', 'k'),
+      f('variant_sku', 'varchar(64)'),
+      f('quantity', 'integer', '', '', 'k'),
+      f('unit_price', 'numeric(12,2)'),
+      f('attributes_snapshot', 'jsonb'),
+      f('created_at', TS),
+      ...ADDED_LINE_COLS('commerce.order_items'),
+    ],
+  },
+  rma_requests: {
+    name: 'commerce.rma_requests', kind: 'new', mod: 'commerce',
+    sub: 'written by POST /api/rma',
+    desc: 'One row per RMA submission. Written in one transaction with its items and an outbox row. First draft of the field list.',
+    fields: [
+      f('id', 'uuid', 'PK'),
+      f('rma_number', 'varchar(32)', 'UQ', 'Human-readable, numbered per country. Example RMA-CA-000123.'),
+      f('brand_id', 'varchar(32)'),
+      f('locale', 'varchar(8)'),
+      f('country_code', 'varchar(2)', 'FK', '→ catalog.countries.code. Renamed from region, now a real reference.', 'm'),
+      f('status', 'varchar(16)'),
+      f('company', 'text'),
+      f('name', 'text'),
+      f('email', 'text'),
+      f('phone', 'text'),
+      f('customer_account_no', 'text null'),
+      f('return_address', 'jsonb'),
+      f('po_number', 'text null'),
+      f('service_requested', 'varchar(24)', '', "'repair' | 'calibration' | 'warranty' | 'credit_return'"),
+      f('notes', 'text null'),
+      f('consent_at', TS),
+      f('source_path', 'text', '', 'Page the form was submitted from.'),
+      f('crm_reference', 'text null', '', 'Case id returned by the CRM API.'),
+      f('crm_sync_status', 'varchar(16)'),
+      f('crm_sync_attempts', 'integer'),
+      f('klaviyo_sent_at', TS + ' null'),
+      f('created_at', TS, '', 'House convention.', 'c'),
+      f('updated_at', TS, '', 'House convention.', 'c'),
+    ],
+  },
+  rma_items: {
+    name: 'commerce.rma_items', kind: 'new', mod: 'commerce',
+    sub: 'written by POST /api/rma',
+    desc: 'One row per instrument being returned.',
+    fields: [
+      f('rma_id', 'uuid', 'PK FK', '→ commerce.rma_requests.id'),
+      f('line_no', 'smallint', 'PK'),
+      f('manufacturer', 'text'),
+      f('model', 'text'),
+      f('serial_number', 'text', '', 'Stays in Postgres and the CRM. Not sent to Klaviyo.'),
+      f('sku', 'varchar(64) null', '', 'Set when the instrument matches a catalog product.'),
+      f('quantity', 'integer'),
+      f('problem_description', 'text'),
+      f('warranty_claim', 'boolean'),
+      f('calibration_required', 'boolean'),
+      f('calibration_level', 'varchar(16) null', '', "'nist' | 'iso17025'"),
+      f('invoice_or_purchase_date', 'date null'),
+    ],
+  },
+  rma_attachments: {
+    name: 'commerce.rma_attachments', kind: 'new', mod: 'commerce',
+    sub: 'files in Azure Blob',
+    desc: 'Mirrors commerce.quote_attachments. The file itself goes to Blob; this row holds the key.',
+    fields: [
+      f('id', 'uuid', 'PK'),
+      f('rma_id', 'uuid', 'FK', '→ commerce.rma_requests.id'),
+      f('storage_key', 'text'),
+      f('storage_mode', 'varchar(24)'),
+      f('file_name', 'text'),
+      f('content_type', 'varchar(128)'),
+      f('byte_size', 'integer'),
+      f('created_at', TS),
+    ],
+  },
+  cms_block: {
+    name: 'cms.pages_blocks_rma_form', kind: 'new', mod: 'cms',
+    sub: 'Payload block table, + _pages_v_ version twin',
+    desc: 'The rma-form CMS block. Payload creates this table and its version twin (cms._pages_v_blocks_rma_form). Brand-scoped so only jmtest editors see it. The form fields themselves are fixed in code (§4.5).',
+    fields: [
+      f('id', 'varchar', 'PK', 'Payload block id.'),
+      f('_parent_id', 'integer', 'FK', '→ cms.pages.id'),
+      f('_order', 'integer', '', 'Position on the page.'),
+      f('_path', 'text', '', 'Path inside the layout field.'),
+      f('heading', 'varchar'),
+      f('intro', 'varchar'),
+      f('service_types', 'enum[]', '', 'Which services to offer. Stored by Payload in a child table, pages_blocks_rma_form_service_types.'),
+      f('allow_attachments', 'boolean'),
+      f('success_copy', 'varchar'),
+      f('consent_text', 'varchar'),
+      f('block_name', 'varchar'),
+    ],
+  },
+  outbox: {
+    name: 'commerce.integration_outbox', kind: 'new', mod: 'commerce', wide: true,
+    sub: 'written by apps/web in the same txn, claimed by jobs/integration-outbox',
+    desc: 'Generic outbox for calls to external APIs: rma.submitted goes to the CRM API as an RMA case, order.confirmed goes to the Business Central API as a Sales Quote. RFQs can follow later. Unique on (topic, aggregate_id), which also serves as the idempotency key, so a retry checks for an existing record before it creates a second one. An alert fires when attempts reaches 5.',
+    fields: [
+      f('id', 'uuid', 'PK'),
+      f('topic', 'varchar(32)', 'UQ', "'rma.submitted' | 'order.confirmed'. Part of the unique key."),
+      f('aggregate_id', 'uuid', 'UQ', 'rma_requests.id or orders.id. Part of the unique key.'),
+      f('payload', 'jsonb'),
+      f('status', 'varchar(16)', '', "'pending' | 'sent' | 'failed'"),
+      f('attempts', 'integer'),
+      f('next_attempt_at', TS, '', 'Backoff schedule.'),
+      f('last_error', 'text null'),
+      f('created_at', TS, '', 'House convention.', 'c'),
+    ],
+  },
+};
+
+const COL_A = ['staging_item_code', 'products', 'currencies', 'countries', 'product_prices', 'availability', 'rental_rates', 'rental_prices', 'erp_refs', 'cal_services', 'cal_service_prices', 'cal_rules'];
+const COL_B = ['cart_items', 'quote_items', 'order_items', 'rma_requests', 'rma_items', 'rma_attachments', 'cms_block'];
+
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const KIND_TAG = { same: 'UNCHANGED', chg: 'CHANGED', new: 'NEW' };
+const ROW = 17, HEAD = 24, SUB = 17, PAD = 6, GAP = 14;
+
+function visible(t, mode) {
+  if (mode === 'all' || t.kind === 'new') return { rows: t.fields, hidden: 0 };
+  const rows = t.fields.filter((x) => x.k || /[+kgm-]/.test(x.fl));
+  return { rows, hidden: t.fields.length - rows.length };
+}
+
+function cardSvg(t, x, y, w, mode) {
+  const { rows, hidden } = visible(t, mode);
+  const h = HEAD + SUB + rows.length * ROW + (hidden ? ROW : 0) + PAD;
+  let s = `<g class="card ${t.kind}${t.rev ? ' rev' : ''}"><rect class="frame" x="${x}" y="${y}" width="${w}" height="${h}" rx="3"/>`;
+  s += `<rect class="head" x="${x + 1}" y="${y + 1}" width="${w - 2}" height="${HEAD - 1}" rx="2"/>`;
+  s += `<text class="tn" x="${x + 9}" y="${y + 16}">${esc(t.name)}</text>`;
+  s += `<text class="tg" x="${x + w - 8}" y="${y + 16}" text-anchor="end">${KIND_TAG[t.kind]}</text>`;
+  s += `<text class="sub" x="${x + 9}" y="${y + HEAD + 12}">${esc(t.sub)}</text>`;
+  s += `<line class="sep" x1="${x}" x2="${x + w}" y1="${y + HEAD + SUB}" y2="${y + HEAD + SUB}"/>`;
+  let ry = y + HEAD + SUB;
+  for (const r of rows) {
+    const isNew = r.fl.includes('+');
+    const grn = /[gm-]/.test(r.fl), del = r.fl.includes('-');
+    if (grn) s += `<rect class="rowgrn" x="${x + 1.5}" y="${ry + 1}" width="${w - 3}" height="${ROW - 1}"/>`;
+    else if (isNew) s += `<rect class="rownew" x="${x + 1.5}" y="${ry + 1}" width="${w - 3}" height="${ROW - 1}"/>`;
+    s += `<g><title>${esc(r.n + ' · ' + r.t + (r.note ? ' · ' + r.note : ''))}</title>`;
+    if (r.k) s += `<text class="fk" x="${x + 8}" y="${ry + 12}">${esc(r.k.replace(' ', '·'))}</text>`;
+    const pre = del ? '− ' : isNew ? '+ ' : r.fl.includes('m') ? '~ ' : '';
+    s += `<text class="fn${grn ? ' grn' : ''}${del ? ' del' : ''}" x="${x + 44}" y="${ry + 12.5}">${pre}${esc(r.n)}</text>`;
+    s += `<text class="ft${del ? ' del' : ''}" x="${x + w - 8}" y="${ry + 12.5}" text-anchor="end">${esc(r.t)}</text></g>`;
+    ry += ROW;
+  }
+  if (hidden) {
+    s += `<text class="more" x="${x + 44}" y="${ry + 12}">+ ${hidden} more unchanged columns</text>`;
+    ry += ROW;
+  }
+  return { svg: s + '</g>', h };
+}
+
+function node(cls, x, y, w, h, title, lines) {
+  let s = `<g class="nd ${cls}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3"/><text class="t" x="${x + 14}" y="${y + 22}">${esc(title)}</text>`;
+  lines.forEach((l, i) => { s += `<text class="s" x="${x + 14}" y="${y + 40 + i * 18}">${esc(l)}</text>`; });
+  return s + '</g>';
+}
+
+function edge(points, hot, label, lx, ly, anchor = 'middle', both = false) {
+  const d = points.map((p, i) => (i ? 'L' : 'M') + p[0] + ',' + p[1]).join(' ');
+  const m = hot ? 'url(#ah-hot)' : 'url(#ah)';
+  let s = `<path class="ed${hot ? ' hot' : ''}" d="${d}" marker-end="${m}"${both ? ` marker-start="${m}"` : ''}/>`;
+  if (label) s += `<text class="lbl${hot ? ' hot' : ''}" x="${lx}" y="${ly}" text-anchor="${anchor}">${esc(label)}</text>`;
+  return s;
+}
+
+function render(mode) {
+  const AX = 530, BX = 800, CW = 240, GX = 505, GW = 560, GY = 20, CARD_Y = GY + 52;
+  const pos = {};
+  let cards = '';
+  const stack = (ids, x) => {
+    let y = CARD_Y;
+    for (const id of ids) {
+      const c = cardSvg(T[id], x, y, CW, mode);
+      pos[id] = { x, y, w: CW, h: c.h };
+      cards += c.svg;
+      y += c.h + GAP;
+    }
+    return y;
+  };
+  const aBottom = stack(COL_A, AX);
+  const bBottom = stack(COL_B, BX);
+  const oy = Math.max(aBottom, bBottom) + 6;
+  const oc = cardSvg(T.outbox, AX, oy, BX + CW - AX, mode);
+  pos.outbox = { x: AX, y: oy, w: BX + CW - AX, h: oc.h };
+  cards += oc.svg;
+  const gBottom = oy + oc.h + 16;
+
+  const P = pos;
+  const hy = (id) => P[id].y + 12; // header centre line of a card
+  const erpY = P.products.y;
+  const bcY = erpY - 16;
+  const jobY = hy('outbox') - 26;
+  const appsY = GY + 24, appsH = 190, klY = appsY + appsH + 64;
+  const W = 1330, H = Math.max(gBottom, jobY + 90) + 20;
+
+  let s = `<svg viewBox="0 0 ${W} ${H}" role="img" aria-label="jmtest.ca target data flow with every Postgres table listed with its columns.">`;
+  s += `<defs><marker id="ah" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah" d="M0,0 L10,5 L0,10 z"/></marker><marker id="ah-hot" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path class="ah-hot" d="M0,0 L10,5 L0,10 z"/></marker></defs>`;
+
+  s += `<rect class="grp" x="${GX}" y="${GY}" width="${GW}" height="${gBottom - GY}" rx="4"/>`;
+  s += `<text class="g" x="${GX + 12}" y="${GY + 20}">POSTGRES · ONE DATABASE · SCHEMA PER MODULE</text>`;
+
+  // Left column: external systems
+  s += node('', 20, hy('staging_item_code') - 26, 220, 52, 'ERP item extract', ['JMTS IT push, unchanged']);
+  s += node('chg', 20, bcY, 220, 122, 'Business Central (CA)', ['CAD price, CA availability', '+ rental items and rates', '+ calibration service items', '+ Sales Quote API']);
+  s += node('chg', 20, jobY, 220, 52, 'JMTest CRM', ['+ RMA case via CRM API']);
+  // Middle column: jobs
+  s += node('chg', 280, erpY, 190, 126, 'jobs/erp-sync', ['+ brand jmtest, BC required', '+ rentals, calibration prices', '+ one price row per currency', '+ one availability row', '  per product per country']);
+  s += node('new', 280, jobY, 190, 52, 'jobs/integration-outbox', ['calls BC + CRM APIs, retries']);
+  // Right column
+  s += node('chg', 1110, appsY, 200, appsH, 'apps/web', ['jmtest.ca · en-CA · CAD', 'PDP: buy, rent, or both', 'calibration add-on picker', 'cart → Stripe (CAD) + RFQ', 'rma-form block renderer', 'POST /api/rma', 'brand flags gate all of it', '+ prices + stock per country']);
+  s += node('chg', 1110, klY, 200, 52, 'Klaviyo', ['+ RMA Submitted event']);
+
+  s += cards;
+
+  // Inbound to the catalog
+  const sy = hy('staging_item_code');
+  s += edge([[240, sy], [528, sy]], false, 'push', 384, sy - 7);
+  const ry = P.staging_item_code.y + HEAD + SUB + 8;
+  s += edge([[530, ry], [430, ry], [430, erpY - 2]], false, 'reads', 446, ry + 18, 'start');
+  s += edge([[240, erpY + 36], [278, erpY + 36]], true);
+  s += `<text class="lbl hot" x="34" y="${bcY + 142}">Custom API pull</text>`;
+  s += edge([[470, erpY + 12], [528, erpY + 12]], false);
+  s += edge([[470, erpY + 28], [518, erpY + 28], [518, hy('product_prices')], [528, hy('product_prices')]], true);
+  s += edge([[470, erpY + 44], [511, erpY + 44], [511, hy('availability')], [528, hy('availability')]], true);
+  s += edge([[470, erpY + 60], [504, erpY + 60], [504, hy('rental_rates')], [528, hy('rental_rates')]], true);
+  s += edge([[470, erpY + 76], [497, erpY + 76], [497, hy('rental_prices')], [528, hy('rental_prices')]], true);
+  s += edge([[470, erpY + 92], [490, erpY + 92], [490, hy('cal_services')], [528, hy('cal_services')]], true);
+  s += edge([[470, erpY + 108], [483, erpY + 108], [483, hy('cal_service_prices')], [528, hy('cal_service_prices')]], true);
+
+  // apps/web to Postgres
+  const lane = GY + 36;
+  s += edge([[1110, lane], [785, lane], [785, hy('products')], [772, hy('products')]], false, 'reads catalog.*', 950, lane - 6);
+  s += edge([[1108, hy('cart_items')], [1042, hy('cart_items')]], false, 'r/w', 1076, hy('cart_items') - 7, 'middle', true);
+  const wy = appsY + appsH - 22;
+  s += edge([[1110, wy], [1085, wy], [1085, hy('rma_requests')], [1042, hy('rma_requests')]], true, 'writes', 1092, hy('rma_requests') - 24, 'start');
+  s += edge([[1085, hy('rma_requests')], [1085, hy('outbox')], [1042, hy('outbox')]], true, '1 txn', 1092, hy('outbox') - 8, 'start');
+  s += edge([[1210, appsY + appsH], [1210, klY - 2]], true, 'event', 1220, appsY + appsH + 36, 'start');
+
+  // Outbound: the outbox job calls the BC and CRM APIs directly
+  const oy2 = hy('outbox');
+  s += edge([[530, oy2], [472, oy2]], true, 'claims', 500, oy2 - 8);
+  s += edge([[280, jobY + 36], [242, jobY + 36]], true);
+  s += `<text class="lbl hot" x="130" y="${jobY + 72}" text-anchor="middle">CRM API: create RMA case</text>`;
+  s += edge([[280, jobY + 14], [260, jobY + 14], [260, bcY + 100], [242, bcY + 100]], true, 'BC API: create Sales Quote', 252, (jobY + bcY + 122) / 2, 'end');
+
+  document.getElementById('diagram').innerHTML = s + '</svg>';
+}
+
+function renderReference() {
+  const groups = [
+    ['staging', 'Staging', 'Owned by JMTS IT. The storefront only reads it.'],
+    ['catalog', 'Catalog module', 'packages/catalog owns these tables.'],
+    ['commerce', 'Commerce module', 'packages/commerce owns these tables.'],
+    ['cms', 'CMS (Payload)', 'Payload generates these tables from the block config in packages/content.'],
+  ];
+  let toc = '', out = '';
+  for (const [mod, title, blurb] of groups) {
+    out += `<div class="mod"><h2>${esc(title)}</h2><p class="prose">${esc(blurb)}</p>`;
+    for (const [id, t] of Object.entries(T)) {
+      if (t.mod !== mod) continue;
+      const anchor = 't-' + id.replace(/_/g, '-');
+      toc += `<li><a href="#${anchor}"${(t.rev || t.fields.some((x) => /[gm-]/.test(x.fl))) ? ' class="grn"' : ''}>${esc(t.name)}</a></li>`;
+      const revTbl = t.rev || t.fields.some((x) => /[gm-]/.test(x.fl));
+      const tag = t.rev ? '<span class="tag t-grn">New · this revision</span>' : t.kind === 'new' ? '<span class="tag t-new">New</span>' : t.kind === 'chg' ? '<span class="tag t-chg">Changed</span>' : '<span class="tag t-same">Unchanged</span>';
+      const added = t.fields.filter((x) => x.fl.includes('+')).length;
+      const removed = t.fields.filter((x) => x.fl.includes('-')).length;
+      const count = `${t.fields.length - removed} columns${added ? `, ${added} new` : ''}${removed ? `, ${removed} removed` : ''}`;
+      const revChip = revTbl && !t.rev ? '<span class="tag t-grn">Changed in this revision</span>' : '';
+      out += `<div class="tbl${revTbl ? ' rev' : ''}" id="${anchor}"><div class="tbl-head"><h3>${esc(t.name)}</h3>${tag}${revChip}<span class="tag t-same">${count}</span></div><p class="tbl-desc">${esc(t.desc)}</p><div class="table-scroll"><table><thead><tr><th>Column</th><th>Type</th><th>Key</th><th>Notes</th></tr></thead><tbody>`;
+      for (const r of t.fields) {
+        const isNew = r.fl.includes('+');
+        const del = r.fl.includes('-'), chg = r.fl.includes('m'), grn = r.fl.includes('g');
+        const cls = del ? 'grncol delcol' : (grn || chg) ? 'grncol' : isNew ? 'newcol' : '';
+        const pre = del ? '− ' : isNew ? '+ ' : chg ? '~ ' : '';
+        const chip = del ? ' <span class="tag t-grn">Removed</span>' : chg ? ' <span class="tag t-grn">Changed</span>' : grn ? ' <span class="tag t-grn">New column · this revision</span>' : isNew ? ' <span class="tag t-new">New column</span>' : '';
+        out += `<tr${cls ? ` class="${cls}"` : ''}><td class="c">${pre}${esc(r.n)}</td><td class="ty">${esc(r.t)}</td><td class="k">${esc(r.k)}</td><td class="n">${esc(r.note)}${chip}</td></tr>`;
+      }
+      out += '</tbody></table></div></div>';
+    }
+    out += '</div>';
+  }
+  document.getElementById('toc').innerHTML = toc;
+  document.getElementById('ref').innerHTML = out;
+}
+
+const btnAll = document.getElementById('mode-all');
+const btnKeys = document.getElementById('mode-keys');
+function setMode(mode) {
+  btnAll.setAttribute('aria-pressed', String(mode === 'all'));
+  btnKeys.setAttribute('aria-pressed', String(mode === 'keys'));
+  render(mode);
+  try { localStorage.setItem('jmtest-ca-dm-mode', mode); } catch (e) {}
+}
+btnAll.addEventListener('click', () => setMode('all'));
+btnKeys.addEventListener('click', () => setMode('keys'));
+let start = 'all';
+try { if (localStorage.getItem('jmtest-ca-dm-mode') === 'keys') start = 'keys'; } catch (e) {}
+renderReference();
+setMode(start);
+</script>
+
+</body>
+</html>

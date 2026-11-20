@@ -342,7 +342,7 @@ next_attempt_at  now()</pre></div>
     { "lineType": "purchase", "sku": "MEG-1000", "quantity": 5, "unitPrice": 129.00 }
   ]
 }</pre></div>
-        <p>The data model’s outbox already plans for RFQs to “follow later”. <code>rfq.submitted</code> is the proposed topic name; the unique key <code>(topic, aggregate_id)</code> stops a double submit creating two rows.</p>
+        <p>The <a href="data-model.html#t-outbox">data model’s outbox</a> already plans for RFQs to “follow later”. <code>rfq.submitted</code> is the proposed topic name; the unique key <code>(topic, aggregate_id)</code> stops a double submit creating two rows.</p>
       </div></details></li>
 </ol>
 
@@ -459,7 +459,7 @@ next_attempt_at  now()</pre></div>
   <li class="node" id="s6"><div class="dot">6</div>
     <details class="card"><summary><span class="m POST">POST</span><span class="t">Add quote line<span class="tag">one call per line</span></span><span class="chev" aria-hidden="true"></span><span class="ep">{base}/companies({companyId})/salesQuotes({quoteId})/salesQuoteLines</span></summary>
       <div class="detail">
-        <p>The BC item number comes from the data model, not from the SKU directly:</p>
+        <p>The BC item number comes from the <a href="data-model.html#t-erp-refs">data model</a>, not from the SKU directly:</p>
         <ul>
           <li><b>Purchase line:</b> <code>catalog.product_erp_refs</code> with <code>role = 'sale'</code>.</li>
           <li><b>Rental line:</b> <code>catalog.product_erp_refs</code> with <code>role = 'rental'</code>. Rental lines can be quoted even though they can’t be bought directly.</li>
