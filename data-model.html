@@ -298,8 +298,10 @@ footer{margin-top:64px;border-top:1px solid var(--d-line);padding-top:16px;color
 <ul class="jump">
   <li><a href="#revision"><span>1</span>Currency and country revision</a></li>
   <li><a href="#flow"><span>2</span>Flow with tables</a></li>
-  <li><a href="#flows"><span>3</span>Tables by flow</a></li>
-  <li><a href="#reference"><span>4</span>Column reference</a></li>
+  <li><a href="#erd"><span>3</span>Entity relationships</a></li>
+  <li><a href="#purposes"><span>4</span>Table and field purposes</a></li>
+  <li><a href="#flows"><span>5</span>Tables by flow</a></li>
+  <li><a href="#reference"><span>6</span>Column reference</a></li>
 </ul>
 
 <div class="callout"><b>What is real and what is proposed.</b> White and dashed-blue cards list columns that exist today. Yellow cards and yellow rows are proposed. The RMA columns are a first draft; the final list comes from the current jmtest RMA form. A few housekeeping columns (<code>created_at</code>, <code>updated_at</code>) are added to new tables by house convention and are marked as such in the reference below.</div>
@@ -346,9 +348,580 @@ The rental tier itself (minimum 3 days, BC item number, status) is one row in <c
 </figure>
 </section>
 
-<!-- =============== 3. BY FLOW =============== -->
-<div class="section-head" id="flows"><h2><span>3</span>Tables by flow</h2><p>Where each documented flow reads and writes</p></div>
-<p class="prose">Each table name jumps to its columns in §4.</p>
+<!-- =============== 3. ERD =============== -->
+<!-- Entity relationship diagram and field purposes, from jmtest_ca_Data_Dictionary.html.
+     Kept exactly as drawn there; classes, ids and anchors are prefixed (erd-, p-) so they don't clash with the rest of this page. -->
+<style>
+.erd{
+  --bg:#f5f7fa; --panel:#ffffff; --fg:#142235; --muted:#586579; --rule:#d5dce6;
+  --brand:#264467; --head:#eaeef4; --hi:#ffe828; --line:#6f7d91; --hot:#c2410c;
+  --m-staging:#e4e7ec; --m-catalog:#dde9f7; --m-commerce:#e2f1ea; --m-cms:#efe6f6;
+  --display:"IBM Plex Sans Condensed", "Arial Narrow", system-ui, sans-serif;
+  --body:"IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color:var(--fg); font:14.5px/1.55 var(--body);
+}
+.erd .bar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:10px 20px;margin-bottom:10px}
+.erd .dlegend{display:flex;flex-wrap:wrap;align-items:center;gap:6px 18px;font-size:13px;color:var(--muted)}
+.erd .dlegend span{display:inline-flex;align-items:center;gap:6px}
+.erd .dlegend svg{overflow:visible}
+.erd .chip{width:18px;height:12px;border-radius:2px;border:1px solid var(--rule);display:inline-block}
+.erd .tools{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;font-size:13px}
+.erd .tools button{font:500 13px var(--body);color:var(--brand);background:var(--panel);border:1px solid var(--rule);border-radius:4px;padding:5px 11px;min-height:32px;cursor:pointer}
+.erd .tools button:hover{border-color:var(--brand)}
+.erd .tools button:focus-visible,.erd .tools input:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.erd .tools label{display:inline-flex;align-items:center;gap:6px;color:var(--muted);cursor:pointer}
+.erd #erd-zoomv{font:12px var(--mono);color:var(--muted);min-width:40px;text-align:center}
+
+.erd .viewport{background:var(--panel);border:1px solid var(--rule);border-radius:4px;overflow:auto;height:min(78vh,980px)}
+.erd .sizer{position:relative}
+.erd .canvas{position:absolute;left:0;top:0;transform-origin:0 0;padding:40px;display:grid;grid-template-columns:repeat(6,310px);column-gap:130px;align-items:start;background-image:radial-gradient(#dfe5ee 1px,transparent 1px);background-size:20px 20px}
+.erd .ecol{display:flex;flex-direction:column;gap:46px;position:relative;z-index:1}
+.erd svg.edges{position:absolute;left:0;top:0;z-index:0;pointer-events:none;overflow:visible}
+.erd .ent{position:relative;background:var(--panel);border:1.4px solid var(--fg);border-radius:4px;box-shadow:0 1px 0 rgba(20,34,53,.08);cursor:pointer;transition:opacity .15s}
+.erd .ent .hd{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:7px 10px;border-bottom:1px solid var(--fg);border-radius:3px 3px 0 0}
+.erd .ent .hd b{font:600 12.5px var(--mono);overflow-wrap:anywhere}
+.erd .ent .hd a{font:11px var(--body);color:var(--brand);text-decoration:none;white-space:nowrap}
+.erd .ent .hd a:hover{text-decoration:underline}
+.erd .ent[data-mod=staging] .hd{background:var(--m-staging)}
+.erd .ent[data-mod=catalog] .hd{background:var(--m-catalog)}
+.erd .ent[data-mod=commerce] .hd{background:var(--m-commerce)}
+.erd .ent[data-mod=cms] .hd{background:var(--m-cms)}
+.erd .erow{display:grid;grid-template-columns:38px 1fr auto;gap:6px;align-items:center;height:21px;padding:0 9px;font-family:var(--mono);border-bottom:1px solid #edf0f4}
+.erd .erow:last-child{border-bottom:0}
+.erd .erow .k{font-size:9.5px;font-weight:600;color:var(--brand);white-space:nowrap}
+.erd .erow .n{font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.erd .erow .t{font-size:10.5px;color:var(--muted);white-space:nowrap}
+.erd .erow.pk .n{font-weight:600}
+.erd .erow:hover{background:#f3f6fa}
+.erd .dim .ent:not(.on){opacity:.28}
+.erd .eedge{fill:none;stroke:var(--line);stroke-width:1.4}
+.erd .eedge.lg{stroke-dasharray:6 4}
+.erd .emark{fill:none;stroke:var(--line);stroke-width:1.4}
+.erd .dim .eedge:not(.on),.erd .dim .emark:not(.on){opacity:.12}
+.erd .eedge.on,.erd .emark.on{stroke:var(--hot);stroke-width:2}
+.erd .hide-lg .lg,.erd .hide-lg .lgm{display:none}
+
+.erd .dtoc{display:flex;flex-wrap:wrap;gap:6px;list-style:none;padding:0;margin:10px 0 0}
+.erd .dtoc a{font:12.5px var(--mono);color:var(--brand);text-decoration:none;background:var(--panel);border:1px solid var(--rule);border-radius:3px;padding:3px 8px;display:inline-block}
+.erd .dgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,560px),1fr));gap:18px;align-items:start;margin-top:16px}
+.erd .dcard{background:var(--panel);border:1.3px solid var(--fg);border-radius:3px;overflow:hidden;scroll-margin-top:20px}
+.erd .dcard:target{outline:3px solid var(--hi);outline-offset:2px}
+.erd .card-head{padding:9px 12px 8px;border-bottom:1px solid var(--rule)}
+.erd .dcard[data-mod=staging] .card-head{background:var(--m-staging)}
+.erd .dcard[data-mod=catalog] .card-head{background:var(--m-catalog)}
+.erd .dcard[data-mod=commerce] .card-head{background:var(--m-commerce)}
+.erd .dcard[data-mod=cms] .card-head{background:var(--m-cms)}
+.erd .card-head h3{font:600 14px var(--mono);margin:0;overflow-wrap:anywhere;color:var(--fg);letter-spacing:0}
+.erd .card-head p{margin:4px 0 0;font-size:13.5px}
+.erd .card-head p b{color:var(--brand)}
+.erd .card-head .back{font-size:12px;color:var(--brand)}
+.erd .dmod{font:600 20px/1.2 var(--display);color:var(--brand);margin:28px 0 6px;letter-spacing:0}
+.erd .dscroll{overflow-x:auto;border:0}
+.erd table{border-collapse:collapse;width:100%;font-size:13px}
+.erd th{text-align:left;font:500 11px var(--mono);letter-spacing:0;text-transform:none;color:var(--muted);background:var(--bg);padding:6px 10px;border-bottom:1px solid var(--rule);white-space:nowrap}
+.erd td{padding:6px 10px;border-bottom:1px solid var(--rule);vertical-align:top}
+.erd tr:last-child td{border-bottom:0}
+.erd tbody tr:hover td{background:none}
+.erd td.dk{font:600 10.5px var(--mono);color:var(--brand);white-space:nowrap;width:1%}
+.erd td.dn{font:500 12.5px var(--mono);white-space:nowrap;width:1%}
+.erd td.dt{font:11.5px var(--mono);color:var(--muted);white-space:nowrap;width:1%}
+.erd td.dp{min-width:240px}
+.erd td.dp a,.erd .card-head p a{color:var(--brand);font-family:var(--mono);font-size:12px}
+.erd a:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+.erd .dnote{font-size:13px;color:var(--muted);margin:10px 0 0;max-width:100ch}
+</style>
+
+<div class="section-head" id="erd"><h2><span>3</span>Entity relationships</h2><p>Click a table to trace its relationships</p></div>
+<p class="prose">Every Postgres table in the jmtest.ca design and how they reference each other. Click a table to highlight its relationships; hover a field to read its purpose; <b>purpose</b> on a table jumps to §4.</p>
+<div class="erd">
+  <div class="bar">
+    <div class="dlegend">
+      <span><svg width="56" height="14"><line x1="0" y1="7" x2="56" y2="7" stroke="#6f7d91" stroke-width="1.4"/><line x1="0" y1="1" x2="12" y2="7" stroke="#6f7d91" stroke-width="1.4"/><line x1="0" y1="13" x2="12" y2="7" stroke="#6f7d91" stroke-width="1.4"/><line x1="48" y1="1" x2="48" y2="13" stroke="#6f7d91" stroke-width="1.4"/><line x1="52" y1="1" x2="52" y2="13" stroke="#6f7d91" stroke-width="1.4"/></svg>Many to one (crow’s foot on the many side)</span>
+      <span><svg width="44" height="14"><line x1="0" y1="7" x2="44" y2="7" stroke="#6f7d91" stroke-width="1.4"/></svg>Foreign key</span>
+      <span><svg width="44" height="14"><line x1="0" y1="7" x2="44" y2="7" stroke="#6f7d91" stroke-width="1.4" stroke-dasharray="6 4"/></svg>Cross-module reference (string id, no DB constraint)</span>
+      <span><i class="chip" style="background:var(--m-staging)"></i>Staging</span>
+      <span><i class="chip" style="background:var(--m-catalog)"></i>Catalog</span>
+      <span><i class="chip" style="background:var(--m-commerce)"></i>Commerce</span>
+      <span><i class="chip" style="background:var(--m-cms)"></i>CMS</span>
+    </div>
+    <div class="tools">
+      <label><input type="checkbox" id="erd-showlg" checked> Cross-module lines</label>
+      <button type="button" id="erd-zout" aria-label="Zoom out">−</button><span id="erd-zoomv">100%</span><button type="button" id="erd-zin" aria-label="Zoom in">+</button>
+      <button type="button" id="erd-zfit">Fit</button>
+    </div>
+  </div>
+  <div class="viewport" id="erd-vp"><div class="sizer" id="erd-sizer"><div class="canvas" id="erd-canvas"></div></div></div>
+  <p class="dnote">Foreign keys to tables outside this model (<code>catalog.categories</code>, <code>commerce.carts</code>, <code>commerce.quotes</code>, <code>commerce.orders</code>, <code>cms.pages</code>) are described in the field purposes but not drawn. <code>integration_outbox.aggregate_id</code> points to an RMA request or an order depending on its topic; the line shows the RMA case.</p>
+</div>
+
+<!-- =============== 4. PURPOSES =============== -->
+<div class="section-head" id="purposes"><h2><span>4</span>Table and field purposes</h2><p>What each table and field is for</p></div>
+<div class="erd">
+  <ul class="dtoc" id="erd-toc"></ul>
+  <div id="erd-model"></div>
+</div>
+
+<script>
+(() => {
+const F = (n, t, k, p) => ({ n, t, k, p });
+const TS = 'timestamptz';
+
+const MODULES = [
+ { id: 'staging', title: 'Staging', blurb: 'Owned by JMTS IT. The storefront only reads it.', tables: [
+  { name: 'staging.item_code', purpose: 'Landing table for the item extract that JMTS IT pushes from the ERP. erp-sync reads new rows from here and turns them into catalog data.', fields: [
+   F('id', 'bigint identity', 'PK', 'Unique id of the staged row.'),
+   F('item_code', 'text', 'UQ', 'ERP item number. Matches a storefront SKU through catalog.product_erp_refs.'),
+   F('item_code_desc', 'text', '', 'Item description as held in the ERP.'),
+   F('product_line', 'text', '', 'ERP product line, used to group items.'),
+   F('product_type', 'text', '', 'ERP product type (for example finished good or service).'),
+   F('category', 'text', '', 'ERP item category, used to map the item to a storefront category.'),
+   F('sales_uom', 'text', '', 'Unit of measure the item is sold in (each, box, metre).'),
+   F('standard_price', 'numeric(18,4)', '', 'ERP standard unit price, in the currency given by currency_code.'),
+   F('suggested_retail', 'numeric(18,4)', '', 'ERP suggested retail price, in the currency given by currency_code.'),
+   F('last_total_unit_cost', 'numeric(18,4)', '', 'Latest landed unit cost. For margin reporting, not shown to customers.'),
+   F('currency_code', 'text', '', 'Currency of the three price fields above, so erp-sync writes the correct price row.'),
+   F('quantity_on_hand', 'numeric(18,4)', '', 'Stock on hand in this warehouse. Null means unknown.'),
+   F('warehouse_code', 'text', 'UQ', 'Warehouse the stock figure belongs to.'),
+   F('item_status', 'text', '', 'Active or Inactive in the ERP.'),
+   F('raw', 'jsonb', '', 'The full source record, keeping fields that are not mapped to columns.'),
+   F('source_system', 'text', '', 'ERP that produced the row. Default SAGE100.'),
+   F('load_batch_id', 'uuid', 'UQ', 'Id shared by every row of one push run, so a run can be traced or replayed.'),
+   F('row_hash', 'text', '', 'Hash of the business fields, used to skip rows that did not change.'),
+   F('extracted_at', TS, '', 'When the row was read from the ERP.'),
+   F('loaded_at', TS, '', 'When the row landed in this table.'),
+   F('processed', 'boolean', '', 'Whether erp-sync has handled the row yet.'),
+   F('processed_at', TS, '', 'When erp-sync handled the row.'),
+  ]},
+ ]},
+ { id: 'catalog', title: 'Catalog', blurb: 'Owned by packages/catalog. What is sold or rented, where, and at what price.', tables: [
+  { name: 'catalog.products', purpose: 'One row per storefront SKU. Holds only the facts about a product that are the same in every country and currency.', fields: [
+   F('sku', 'varchar(64)', 'PK', 'Storefront product code. Every other catalog table refers to a product by this.'),
+   F('brand_id', 'varchar(32)', '', "Which storefront the product belongs to. 'jmtest' for jmtest.ca."),
+   F('slug', 'varchar(128)', '', 'URL segment of the product page.'),
+   F('category_id', 'varchar(64)', 'FK', 'Storefront category the product is listed under (catalog.categories).'),
+   F('product_line', 'varchar(64)', '', 'Product line, for grouping and filtering.'),
+   F('status', 'varchar(16)', '', 'Whether the product is live, draft or retired on the storefront.'),
+   F('is_calibrated', 'boolean', '', 'Whether the product can be sold with a calibration certificate.'),
+   F('is_hazmat', 'boolean', '', 'Whether the product is hazardous material, which limits shipping options.'),
+   F('weight_lb', 'numeric(8,3)', '', 'Shipping weight in pounds.'),
+   F('weight_kg', 'numeric(8,3)', '', 'Shipping weight in kilograms.'),
+   F('tags', 'jsonb', '', 'Free tags used for search and merchandising.'),
+   F('specs', 'jsonb', '', 'Technical specifications shown on the product page. Also used by calibration rules to match spec ranges.'),
+   F('media', 'jsonb', '', 'Images, documents and videos for the product page.'),
+   F('attributes', 'jsonb', '', 'Configurable options a customer can choose. Priced by product_price_matrix.'),
+   F('vendor_sku', 'varchar(64)', '', 'Manufacturer part number.'),
+   F('is_digital_delivery', 'boolean', '', 'Whether the product is delivered digitally, so no shipping applies.'),
+   F('hazmat_note', 'text', '', 'Hazmat handling or shipping note shown to the customer.'),
+   F('superseded_by', 'varchar(64)', '', 'SKU of the product that replaces this one, for redirecting customers.'),
+   F('live_on_legacy_site', 'boolean', '', 'Whether the product is still listed on the old site during migration.'),
+   F('ribbon_tag', 'text', '', 'Short badge on the product tile, for example New or Best seller.'),
+   F('created_at', TS, '', 'When the row was created.'),
+   F('updated_at', TS, '', 'When the row was last changed.'),
+  ]},
+  { name: 'catalog.currencies', purpose: 'Reference list of the currencies the platform can price in. Adding a currency is a new row here, never a new column.', fields: [
+   F('code', 'varchar(3)', 'PK', 'ISO 4217 currency code, for example CAD or USD.'),
+   F('name', 'text', '', 'Display name, for example Canadian Dollar.'),
+   F('symbol', 'varchar(8)', '', 'Currency symbol, for example $ or €.'),
+   F('decimal_places', 'smallint', '', 'How many decimals amounts are rounded to and shown with.'),
+   F('is_active', 'boolean', '', 'Whether the currency can be used for new prices and carts.'),
+   F('sort_order', 'smallint', '', 'Order in admin pickers.'),
+   F('created_at', TS, '', 'When the row was created.'),
+   F('updated_at', TS, '', 'When the row was last changed.'),
+  ]},
+  { name: 'catalog.countries', purpose: 'Reference list of the countries the platform sells, rents or services in, each with its default currency. Adding a market is a new row here.', fields: [
+   F('code', 'varchar(2)', 'PK', 'ISO 3166-1 country code, for example CA or US.'),
+   F('name', 'text', '', 'Display name of the country.'),
+   F('default_currency_code', 'varchar(3)', 'FK', 'Currency a storefront in this country prices in (catalog.currencies), for example CA uses CAD.'),
+   F('is_active', 'boolean', '', 'Whether the country is currently open for business.'),
+   F('sort_order', 'smallint', '', 'Order in admin pickers.'),
+   F('created_at', TS, '', 'When the row was created.'),
+   F('updated_at', TS, '', 'When the row was last changed.'),
+  ]},
+  { name: 'catalog.product_prices', purpose: 'The purchase price of a product in each currency. One product has one row per currency and price type, so it can have any number of prices.', fields: [
+   F('sku', 'varchar(64)', 'PK FK', 'Product the price belongs to (catalog.products).'),
+   F('currency_code', 'varchar(3)', 'PK FK', 'Currency of the price (catalog.currencies).'),
+   F('price_type', 'varchar(16)', 'PK', "Kind of price, for example list or sale. Default list."),
+   F('amount', 'numeric(12,2)', '', 'The price itself, in currency_code.'),
+   F('source_system', 'varchar(16)', '', 'Where the price came from: BC, SAGE100 or manual.'),
+   F('erp_status', 'varchar(16)', '', 'Whether the price is active or inactive in the ERP.'),
+   F('valid_from', 'timestamptz null', '', 'When the price takes effect, for loading a price change ahead of time.'),
+   F('synced_at', TS, '', 'When erp-sync last refreshed the row.'),
+   F('created_at', TS, '', 'When the row was created.'),
+   F('updated_at', TS, '', 'When the row was last changed.'),
+  ]},
+  { name: 'catalog.product_availability', purpose: 'Everything about a product that depends on the country: whether it is sold or rented there, stock and lead time. No row means the product is not offered in that country.', fields: [
+   F('sku', 'varchar(64)', 'PK FK', 'Product the availability belongs to (catalog.products).'),
+   F('country_code', 'varchar(2)', 'PK FK', 'Country the availability applies to (catalog.countries).'),
+   F('sale_enabled', 'boolean', '', 'Whether the product can be bought in this country.'),
+   F('rental_enabled', 'boolean', '', 'Whether the product can be rented in this country. With sale_enabled, controls the Buy / Rent switch.'),
+   F('in_stock', 'boolean null', '', 'Whether stock is on hand in this country. Null means unknown.'),
+   F('lead_time_days', 'smallint null', '', 'Days to ship in this country when not in stock.'),
+   F('rental_units_available', 'integer null', '', 'Rental units free in this country. Null means unknown.'),
+   F('source_system', 'varchar(16)', '', 'ERP the figures came from: BC for CA, SAGE100 for US.'),
+   F('synced_at', TS, '', 'When erp-sync last refreshed the row.'),
+  ]},
+  { name: 'catalog.product_rental_rates', purpose: 'The rental terms a product is offered on in a country, one row per rental period (day, week, month). The money for each term is in product_rental_prices.', fields: [
+   F('sku', 'varchar(64)', 'PK FK', 'Product being rented (catalog.products).'),
+   F('country_code', 'varchar(2)', 'PK FK', 'Country the rental term applies to (catalog.countries).'),
+   F('period', 'varchar(8)', 'PK', 'Rental period the rate is charged per: day, week or month.'),
+   F('min_periods', 'smallint', '', 'Minimum number of periods a customer must rent for.'),
+   F('bc_item_no', 'text', '', 'Business Central rental item number this term comes from.'),
+   F('erp_status', 'varchar(16)', '', 'Whether the term is active or inactive in BC.'),
+   F('synced_at', TS, '', 'When erp-sync last refreshed the row.'),
+  ]},
+  { name: 'catalog.product_rental_prices', purpose: 'The rental rate and deposit of each rental term in each currency. For example, a day rate of 35 CAD and 20 USD is two rows.', fields: [
+   F('sku', 'varchar(64)', 'PK FK', 'Product being rented. With country_code and period, points to the rental term (catalog.product_rental_rates).'),
+   F('country_code', 'varchar(2)', 'PK FK', 'Country of the rental term.'),
+   F('period', 'varchar(8)', 'PK FK', 'Period of the rental term.'),
+   F('currency_code', 'varchar(3)', 'PK FK', 'Currency of the rate and deposit (catalog.currencies).'),
+   F('amount', 'numeric(12,2)', '', 'Rental rate per period, in currency_code.'),
+   F('deposit', 'numeric(12,2) null', '', 'Refundable deposit, in the same currency. Null means no deposit.'),
+   F('source_system', 'varchar(16)', '', 'Where the price came from: BC or manual.'),
+   F('erp_status', 'varchar(16)', '', 'Whether the price is active or inactive in the ERP.'),
+   F('synced_at', TS, '', 'When erp-sync last refreshed the row.'),
+  ]},
+  { name: 'catalog.product_erp_refs', purpose: 'Maps a storefront SKU to its ERP item numbers. One product can have separate ERP records for selling, renting and calibration.', fields: [
+   F('sku', 'varchar(64)', 'PK FK', 'Storefront product (catalog.products).'),
+   F('source_system', 'varchar(16)', 'PK', 'ERP the number belongs to: SAGE100 or BC.'),
+   F('role', 'varchar(16)', 'PK', 'What the ERP record is used for: sale, rental or calibration.'),
+   F('native_number', 'text', 'UQ', 'The item number in that ERP.'),
+  ]},
+  { name: 'catalog.calibration_services', purpose: 'The calibration services that can be added to a product, as defined in Business Central. Their prices are in calibration_prices.', fields: [
+   F('id', 'uuid', 'PK', 'Unique id of the calibration service.'),
+   F('level', 'varchar(16)', '', 'Calibration standard: nist (NIST traceable) or iso17025 (ISO 17025 accredited).'),
+   F('bc_item_no', 'text', 'UQ', 'Business Central service item number.'),
+   F('erp_status', 'varchar(16)', '', 'Whether the service is active or inactive in BC.'),
+  ]},
+  { name: 'catalog.calibration_prices', purpose: 'The price of each calibration service in each currency. A calibration add-on is offered in a currency only if it has a price row for it.', fields: [
+   F('calibration_service_id', 'uuid', 'PK FK', 'Calibration service the price belongs to (catalog.calibration_services).'),
+   F('currency_code', 'varchar(3)', 'PK FK', 'Currency of the price (catalog.currencies).'),
+   F('amount', 'numeric(12,2)', '', 'The price, in currency_code.'),
+   F('erp_status', 'varchar(16)', '', 'Whether the price is active or inactive in BC.'),
+   F('synced_at', TS, '', 'When erp-sync last refreshed the row.'),
+  ]},
+  { name: 'catalog.calibration_rules', purpose: 'Decides which calibration service applies to which product. Maintained by the calibration lab. Checked in order: product override, then category plus spec range, then category default.', fields: [
+   F('id', 'uuid', 'PK', 'Unique id of the rule.'),
+   F('category_id', 'varchar(64)', 'FK', 'Category the rule applies to (catalog.categories).'),
+   F('sku', 'varchar(64) null', 'FK', 'Set only when the rule overrides one specific product (catalog.products).'),
+   F('spec_attribute', 'text null', '', 'Spec the range is checked against, for example test voltage.'),
+   F('range_min', 'numeric null', '', 'Lowest spec value the rule covers.'),
+   F('range_max', 'numeric null', '', 'Highest spec value the rule covers.'),
+   F('unit', 'text null', '', 'Unit of range_min and range_max, for example kV.'),
+   F('level', 'varchar(16)', '', 'Calibration standard the rule is for: nist or iso17025.'),
+   F('calibration_service_id', 'uuid null', 'FK', 'Service to offer when the rule matches (catalog.calibration_services). Empty when offered is false.'),
+   F('offered', 'boolean', '', 'False marks a product or range as not calibrated, so the add-on is hidden.'),
+   F('priority', 'smallint', '', 'Breaks ties when two rules at the same level match.'),
+  ]},
+ ]},
+ { id: 'commerce', title: 'Commerce', blurb: 'Owned by packages/commerce. Carts, quotes, orders, returns and calls to outside systems.', tables: [
+  { name: 'commerce.cart_items', purpose: 'The lines in a shopping cart. Purchase, rental and calibration lines share one line model. The price is checked again every time the cart is read.', fields: [
+   F('id', 'uuid', 'PK', 'Unique id of the cart line.'),
+   F('cart_id', 'uuid', 'FK', 'Cart the line belongs to (commerce.carts).'),
+   F('sku', 'varchar(64)', '', 'Product on the line.'),
+   F('quantity', 'integer', '', 'Number of units. A calibration line always has the same quantity as its parent.'),
+   F('unit_price_snapshot', 'numeric(12,2)', '', 'Unit price when the line was added, in currency_code.'),
+   F('currency_code', 'varchar(3)', 'FK', 'Currency of the line price (catalog.currencies).'),
+   F('attributes_snapshot', 'jsonb', '', 'Options the customer chose, saved with the line.'),
+   F('line_type', 'varchar(16)', '', 'Kind of line: purchase, rental or calibration.'),
+   F('parent_line_id', 'uuid null', 'FK', 'For a calibration line, the purchase line it calibrates (commerce.cart_items).'),
+   F('calibration_level', 'varchar(16) null', '', 'Calibration standard chosen: nist or iso17025. Calibration lines only.'),
+   F('rental_start', 'date null', '', 'First day of the rental. Rental lines only.'),
+   F('rental_end', 'date null', '', 'Last day of the rental. Rental lines only.'),
+   F('created_at', TS, '', 'When the line was added.'),
+   F('updated_at', TS, '', 'When the line was last changed.'),
+  ]},
+  { name: 'commerce.quote_items', purpose: 'The lines of a request for quote. A cart with a rental line is sent as a quote request, so rental lines end up here.', fields: [
+   F('id', 'uuid', 'PK', 'Unique id of the quote line.'),
+   F('quote_id', 'uuid', 'FK', 'Quote the line belongs to (commerce.quotes).'),
+   F('sku', 'varchar(64)', '', 'Product on the line.'),
+   F('variant_sku', 'varchar(64)', '', 'Specific variant chosen, if the product has variants.'),
+   F('quantity', 'integer', '', 'Number of units requested.'),
+   F('unit_price_snapshot', 'numeric(12,2)', '', 'Unit price shown when the quote was requested, in currency_code.'),
+   F('currency_code', 'varchar(3)', 'FK', 'Currency of the line price (catalog.currencies).'),
+   F('attributes_snapshot', 'jsonb', '', 'Options the customer chose, saved with the line.'),
+   F('item_notes', 'text', '', 'Customer note about this line.'),
+   F('line_type', 'varchar(16)', '', 'Kind of line: purchase, rental or calibration.'),
+   F('parent_line_id', 'uuid null', 'FK', 'For a calibration line, the purchase line it calibrates (commerce.quote_items).'),
+   F('calibration_level', 'varchar(16) null', '', 'Calibration standard chosen: nist or iso17025. Calibration lines only.'),
+   F('rental_start', 'date null', '', 'First day of the rental. Rental lines only.'),
+   F('rental_end', 'date null', '', 'Last day of the rental. Rental lines only.'),
+   F('created_at', TS, '', 'When the line was created.'),
+  ]},
+  { name: 'commerce.order_items', purpose: 'The lines of a paid order from Stripe checkout. Only purchase and calibration lines can be bought directly; rentals go through a quote.', fields: [
+   F('id', 'uuid', 'PK', 'Unique id of the order line.'),
+   F('order_id', 'uuid', 'FK', 'Order the line belongs to (commerce.orders).'),
+   F('sku', 'varchar(64)', '', 'Product on the line.'),
+   F('variant_sku', 'varchar(64)', '', 'Specific variant bought, if the product has variants.'),
+   F('quantity', 'integer', '', 'Number of units bought.'),
+   F('unit_price', 'numeric(12,2)', '', 'Unit price charged, in currency_code.'),
+   F('currency_code', 'varchar(3)', 'FK', 'Currency the line was charged in (catalog.currencies).'),
+   F('attributes_snapshot', 'jsonb', '', 'Options the customer chose, saved with the line.'),
+   F('line_type', 'varchar(16)', '', 'Kind of line: purchase or calibration.'),
+   F('parent_line_id', 'uuid null', 'FK', 'For a calibration line, the purchase line it calibrates (commerce.order_items).'),
+   F('calibration_level', 'varchar(16) null', '', 'Calibration standard bought: nist or iso17025. Calibration lines only.'),
+   F('rental_start', 'date null', '', 'Kept for the shared line model. Always empty on orders.'),
+   F('rental_end', 'date null', '', 'Kept for the shared line model. Always empty on orders.'),
+   F('created_at', TS, '', 'When the line was created.'),
+  ]},
+  { name: 'commerce.rma_requests', purpose: 'One row per return (RMA) form submitted on the website. Saved together with its items and an outbox row, so the request reaches the CRM even if the CRM is down.', fields: [
+   F('id', 'uuid', 'PK', 'Unique id of the return request.'),
+   F('rma_number', 'varchar(32)', 'UQ', 'Number given to the customer, numbered per country, for example RMA-CA-000123.'),
+   F('brand_id', 'varchar(32)', '', 'Storefront the request came from.'),
+   F('locale', 'varchar(8)', '', 'Language of the form, for example en-CA or fr-CA. Used for the confirmation email.'),
+   F('country_code', 'varchar(2)', 'FK', 'Country the request is handled in (catalog.countries).'),
+   F('status', 'varchar(16)', '', 'Where the request is in its life cycle, for example submitted or received.'),
+   F('company', 'text', '', 'Customer company name.'),
+   F('name', 'text', '', 'Contact person.'),
+   F('email', 'text', '', 'Contact email for updates.'),
+   F('phone', 'text', '', 'Contact phone number.'),
+   F('customer_account_no', 'text null', '', 'Customer account number, if the customer has one.'),
+   F('return_address', 'jsonb', '', 'Address the instruments are shipped back to.'),
+   F('po_number', 'text null', '', 'Customer purchase order number for the service.'),
+   F('service_requested', 'varchar(24)', '', 'What the customer wants: repair, calibration, warranty or credit_return.'),
+   F('notes', 'text null', '', 'Free-text notes from the customer.'),
+   F('consent_at', TS, '', 'When the customer accepted the terms on the form.'),
+   F('source_path', 'text', '', 'Page the form was submitted from.'),
+   F('crm_reference', 'text null', '', 'Case id returned by the CRM, once the case is created.'),
+   F('crm_sync_status', 'varchar(16)', '', 'Whether the request has reached the CRM yet.'),
+   F('crm_sync_attempts', 'integer', '', 'How many times sending to the CRM has been tried.'),
+   F('klaviyo_sent_at', 'timestamptz null', '', 'When the RMA Submitted event was sent to Klaviyo for the confirmation email.'),
+   F('created_at', TS, '', 'When the request was submitted.'),
+   F('updated_at', TS, '', 'When the request was last changed.'),
+  ]},
+  { name: 'commerce.rma_items', purpose: 'One row per instrument being returned on an RMA request.', fields: [
+   F('rma_id', 'uuid', 'PK FK', 'Return request the item belongs to (commerce.rma_requests).'),
+   F('line_no', 'smallint', 'PK', 'Position of the item on the request.'),
+   F('manufacturer', 'text', '', 'Maker of the instrument.'),
+   F('model', 'text', '', 'Model of the instrument.'),
+   F('serial_number', 'text', '', 'Serial number, to identify the unit. Kept in Postgres and the CRM, never sent to Klaviyo.'),
+   F('sku', 'varchar(64) null', '', 'Storefront product, when the instrument matches one.'),
+   F('quantity', 'integer', '', 'Number of units of this instrument.'),
+   F('problem_description', 'text', '', 'What is wrong with the instrument.'),
+   F('warranty_claim', 'boolean', '', 'Whether the customer is claiming under warranty.'),
+   F('calibration_required', 'boolean', '', 'Whether the instrument also needs calibrating.'),
+   F('calibration_level', 'varchar(16) null', '', 'Calibration standard wanted: nist or iso17025.'),
+   F('invoice_or_purchase_date', 'date null', '', 'Purchase date, used to check warranty.'),
+  ]},
+  { name: 'commerce.rma_attachments', purpose: 'Files the customer attached to an RMA request. The file is stored in Azure Blob; this row holds where it is.', fields: [
+   F('id', 'uuid', 'PK', 'Unique id of the attachment.'),
+   F('rma_id', 'uuid', 'FK', 'Return request the file belongs to (commerce.rma_requests).'),
+   F('storage_key', 'text', '', 'Location of the file in Azure Blob storage.'),
+   F('storage_mode', 'varchar(24)', '', 'How the file is stored, for example private blob.'),
+   F('file_name', 'text', '', 'Original file name as uploaded.'),
+   F('content_type', 'varchar(128)', '', 'File type, for example application/pdf.'),
+   F('byte_size', 'integer', '', 'File size in bytes, to enforce the upload limit.'),
+   F('created_at', TS, '', 'When the file was uploaded.'),
+  ]},
+  { name: 'commerce.integration_outbox', purpose: 'Queue of calls to outside systems: new RMAs go to the CRM as cases, confirmed orders go to Business Central as Sales Quotes. A job sends them and retries on failure.', fields: [
+   F('id', 'uuid', 'PK', 'Unique id of the queued call.'),
+   F('topic', 'varchar(32)', 'UQ', 'What happened: rma.submitted or order.confirmed. Decides which system is called.'),
+   F('aggregate_id', 'uuid', 'UQ', 'Id of the RMA request or order the call is about. With topic, stops the same call being made twice.'),
+   F('payload', 'jsonb', '', 'Data to send to the outside system.'),
+   F('status', 'varchar(16)', '', 'pending, sent or failed.'),
+   F('attempts', 'integer', '', 'How many times sending has been tried. An alert fires at 5.'),
+   F('next_attempt_at', TS, '', 'When the next retry is due.'),
+   F('last_error', 'text null', '', 'Error from the last failed attempt, for troubleshooting.'),
+   F('created_at', TS, '', 'When the call was queued.'),
+  ]},
+ ]},
+ { id: 'cms', title: 'CMS (Payload)', blurb: 'Generated by Payload from the block config in packages/content.', tables: [
+  { name: 'cms.pages_blocks_rma_form', purpose: 'Settings of the RMA form block that editors place on a CMS page. The form fields themselves are fixed in code. Payload also keeps a version copy (cms._pages_v_blocks_rma_form).', fields: [
+   F('id', 'varchar', 'PK', 'Payload block id.'),
+   F('_parent_id', 'integer', 'FK', 'Page the block sits on (cms.pages).'),
+   F('_order', 'integer', '', 'Position of the block on the page.'),
+   F('_path', 'text', '', 'Where the block sits inside the page layout field.'),
+   F('heading', 'varchar', '', 'Heading shown above the form.'),
+   F('intro', 'varchar', '', 'Introduction text under the heading.'),
+   F('service_types', 'enum[]', '', 'Which services the form offers (repair, calibration, warranty, credit return).'),
+   F('allow_attachments', 'boolean', '', 'Whether customers can upload files.'),
+   F('success_copy', 'varchar', '', 'Message shown after the form is sent.'),
+   F('consent_text', 'varchar', '', 'Terms text the customer must accept.'),
+   F('block_name', 'varchar', '', 'Name editors see for the block in the CMS.'),
+  ]},
+ ]},
+];
+
+// Diagram layout: one array per column, top to bottom.
+const LAYOUT = [
+  ['staging.item_code', 'catalog.product_erp_refs'],
+  ['catalog.products', 'catalog.calibration_rules'],
+  ['catalog.product_prices', 'catalog.product_availability', 'catalog.product_rental_rates', 'catalog.product_rental_prices', 'catalog.calibration_services', 'catalog.calibration_prices'],
+  ['catalog.currencies', 'catalog.countries'],
+  ['commerce.cart_items', 'commerce.quote_items', 'commerce.order_items'],
+  ['commerce.rma_requests', 'commerce.rma_items', 'commerce.rma_attachments', 'commerce.integration_outbox', 'cms.pages_blocks_rma_form'],
+];
+const COL_TOP = [0, 0, 0, 120, 0, 0];
+
+// [from table, from field, to table, to field, cross-module]
+const REL = [
+  ['catalog.countries', 'default_currency_code', 'catalog.currencies', 'code'],
+  ['catalog.product_prices', 'sku', 'catalog.products', 'sku'],
+  ['catalog.product_prices', 'currency_code', 'catalog.currencies', 'code'],
+  ['catalog.product_availability', 'sku', 'catalog.products', 'sku'],
+  ['catalog.product_availability', 'country_code', 'catalog.countries', 'code'],
+  ['catalog.product_rental_rates', 'sku', 'catalog.products', 'sku'],
+  ['catalog.product_rental_rates', 'country_code', 'catalog.countries', 'code'],
+  ['catalog.product_rental_prices', 'period', 'catalog.product_rental_rates', 'period'],
+  ['catalog.product_rental_prices', 'currency_code', 'catalog.currencies', 'code'],
+  ['catalog.product_erp_refs', 'sku', 'catalog.products', 'sku'],
+  ['catalog.calibration_prices', 'calibration_service_id', 'catalog.calibration_services', 'id'],
+  ['catalog.calibration_prices', 'currency_code', 'catalog.currencies', 'code'],
+  ['catalog.calibration_rules', 'sku', 'catalog.products', 'sku'],
+  ['catalog.calibration_rules', 'calibration_service_id', 'catalog.calibration_services', 'id'],
+  ['commerce.cart_items', 'parent_line_id', 'commerce.cart_items', 'id'],
+  ['commerce.quote_items', 'parent_line_id', 'commerce.quote_items', 'id'],
+  ['commerce.order_items', 'parent_line_id', 'commerce.order_items', 'id'],
+  ['commerce.rma_items', 'rma_id', 'commerce.rma_requests', 'id'],
+  ['commerce.rma_attachments', 'rma_id', 'commerce.rma_requests', 'id'],
+  ['commerce.cart_items', 'currency_code', 'catalog.currencies', 'code', 1],
+  ['commerce.quote_items', 'currency_code', 'catalog.currencies', 'code', 1],
+  ['commerce.order_items', 'currency_code', 'catalog.currencies', 'code', 1],
+  ['commerce.cart_items', 'sku', 'catalog.products', 'sku', 1],
+  ['commerce.quote_items', 'sku', 'catalog.products', 'sku', 1],
+  ['commerce.order_items', 'sku', 'catalog.products', 'sku', 1],
+  ['commerce.rma_items', 'sku', 'catalog.products', 'sku', 1],
+  ['commerce.rma_requests', 'country_code', 'catalog.countries', 'code', 1],
+  ['commerce.integration_outbox', 'aggregate_id', 'commerce.rma_requests', 'id', 1],
+  ['staging.item_code', 'item_code', 'catalog.product_erp_refs', 'native_number', 1],
+];
+
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+const anchor = (name) => 'p-' + name.replace(/[^a-z0-9]+/gi, '-').toLowerCase();
+const TABLES = {};
+for (const m of MODULES) for (const t of m.tables) TABLES[t.name] = { ...t, mod: m.id };
+const linkRefs = (text) => esc(text).replace(/\b(staging|catalog|commerce|cms)\.([a-z_]+)\b/g, (m) =>
+  TABLES[m] ? `<a href="#${anchor(m)}">${m}</a>` : m);
+const slug = (s) => s.replace(/[^a-z0-9]+/gi, '_');
+const ent = (name) => document.getElementById('erd-e-' + slug(name));
+
+/* ---------- ERD ---------- */
+const canvas = document.getElementById('erd-canvas');
+let html = '';
+LAYOUT.forEach((col, ci) => {
+  html += `<div class="ecol" style="margin-top:${COL_TOP[ci]}px">`;
+  for (const name of col) {
+    const t = TABLES[name];
+    html += `<div class="ent" data-mod="${t.mod}" data-t="${name}" id="erd-e-${slug(name)}" tabindex="0" title="${esc(t.purpose)}">`;
+    html += `<div class="hd"><b>${esc(name)}</b><a href="#${anchor(name)}" title="Read table and field purposes">purpose</a></div>`;
+    for (const f of t.fields) {
+      html += `<div class="erow${f.k.includes('PK') ? ' pk' : ''}" data-f="${f.n}" title="${esc(f.n + ': ' + f.p)}"><span class="k">${esc(f.k.replace(' ', '·'))}</span><span class="n">${esc(f.n)}</span><span class="t">${esc(f.t)}</span></div>`;
+    }
+    html += '</div>';
+  }
+  html += '</div>';
+});
+canvas.innerHTML = html + '<svg class="edges" id="erd-edges"></svg>';
+
+function anchorPt(tname, fname) {
+  const e = ent(tname);
+  const row = e.querySelector(`.erow[data-f="${fname}"]`);
+  const col = e.parentElement;
+  const x = col.offsetLeft + e.offsetLeft;
+  const y = col.offsetTop + e.offsetTop + row.offsetTop + row.offsetHeight / 2;
+  return { l: x, r: x + e.offsetWidth, y };
+}
+
+function drawEdges() {
+  const svg = document.getElementById('erd-edges');
+  svg.setAttribute('width', canvas.scrollWidth);
+  svg.setAttribute('height', canvas.scrollHeight);
+  let s = '';
+  const loops = {};
+  REL.forEach(([ft, ff, tt, tf, lg]) => {
+    const a = anchorPt(ft, ff), b = anchorPt(tt, tf);
+    const cls = `${lg ? ' lg' : ''}`;
+    const tag = `data-a="${ft}" data-b="${tt}"`;
+    let d, ax, adir, bx, bdir;
+    if (Math.abs(a.l - b.l) < 5) {
+      // same column: loop out on the right
+      const n = (loops[a.l] = (loops[a.l] || 0) + 1);
+      const out = a.r + 22 + n * 10;
+      ax = a.r; adir = 1; bx = b.r; bdir = 1;
+      d = `M${ax + 12},${a.y} H${out - 8} Q${out},${a.y} ${out},${a.y + (b.y > a.y ? 8 : -8)} V${b.y + (b.y > a.y ? -8 : 8)} Q${out},${b.y} ${out - 8},${b.y} H${bx + 12}`;
+    } else if (b.l > a.l) {
+      ax = a.r; adir = 1; bx = b.l; bdir = -1;
+      const mx = (ax + bx) / 2;
+      d = `M${ax + 12},${a.y} C${mx},${a.y} ${mx},${b.y} ${bx - 12},${b.y}`;
+    } else {
+      ax = a.l; adir = -1; bx = b.r; bdir = 1;
+      const mx = (ax + bx) / 2;
+      d = `M${ax - 12},${a.y} C${mx},${a.y} ${mx},${b.y} ${bx + 12},${b.y}`;
+    }
+    s += `<path class="eedge${cls}" ${tag} d="${d}"/>`;
+    // crow's foot at the many side (a), two bars at the one side (b)
+    const ma = `M${ax},${a.y - 6} L${ax + adir * 12},${a.y} L${ax},${a.y + 6} M${ax},${a.y} H${ax + adir * 12}`;
+    const mb = `M${bx},${b.y} H${bx + bdir * 12} M${bx + bdir * 6},${b.y - 6} V${b.y + 6} M${bx + bdir * 10},${b.y - 6} V${b.y + 6}`;
+    s += `<path class="emark${lg ? ' lgm' : ''}" ${tag} d="${ma} ${mb}"/>`;
+  });
+  svg.innerHTML = s;
+}
+
+/* focus a table: highlight it, its neighbours and their lines */
+let focused = null;
+function setFocus(name) {
+  focused = focused === name ? null : name;
+  canvas.classList.toggle('dim', !!focused);
+  canvas.querySelectorAll('.ent').forEach((e) => e.classList.remove('on'));
+  canvas.querySelectorAll('.eedge, .emark').forEach((p) => {
+    const on = focused && (p.dataset.a === focused || p.dataset.b === focused);
+    p.classList.toggle('on', !!on);
+    if (on) { ent(p.dataset.a).classList.add('on'); ent(p.dataset.b).classList.add('on'); }
+  });
+  if (focused) ent(focused).classList.add('on');
+}
+canvas.addEventListener('click', (ev) => {
+  if (ev.target.closest('a')) return;
+  const e = ev.target.closest('.ent');
+  if (e) setFocus(e.dataset.t); else if (focused) setFocus(focused);
+});
+canvas.addEventListener('keydown', (ev) => {
+  const e = ev.target.closest('.ent');
+  if (e && (ev.key === 'Enter' || ev.key === ' ')) { ev.preventDefault(); setFocus(e.dataset.t); }
+});
+document.getElementById('erd-showlg').addEventListener('change', (e) => canvas.classList.toggle('hide-lg', !e.target.checked));
+
+/* zoom */
+const vp = document.getElementById('erd-vp'), sizer = document.getElementById('erd-sizer'), zv = document.getElementById('erd-zoomv');
+let zoom = 1;
+function applyZoom(z) {
+  zoom = Math.min(1.5, Math.max(0.3, z));
+  canvas.style.transform = `scale(${zoom})`;
+  sizer.style.width = canvas.offsetWidth * zoom + 'px';
+  sizer.style.height = canvas.offsetHeight * zoom + 'px';
+  zv.textContent = Math.round(zoom * 100) + '%';
+}
+document.getElementById('erd-zin').onclick = () => applyZoom(zoom + 0.1);
+document.getElementById('erd-zout').onclick = () => applyZoom(zoom - 0.1);
+document.getElementById('erd-zfit').onclick = () => applyZoom((vp.clientWidth - 4) / canvas.offsetWidth);
+
+/* ---------- dictionary ---------- */
+let toc = '', out = '';
+for (const m of MODULES) {
+  out += `<h3 class="dmod">${esc(m.title)}</h3><p class="dnote" style="margin-top:0">${esc(m.blurb)}</p><div class="dgrid">`;
+  for (const t of m.tables) {
+    const id = anchor(t.name);
+    toc += `<li><a href="#${id}">${esc(t.name)}</a></li>`;
+    out += `<article class="dcard" data-mod="${m.id}" id="${id}"><div class="card-head"><h3>${esc(t.name)}</h3><p><b>Purpose:</b> ${linkRefs(t.purpose)}</p><a class="back" href="#erd">Back to diagram</a></div>`;
+    out += '<div class="dscroll"><table><thead><tr><th>Key</th><th>Field</th><th>Type</th><th>Purpose</th></tr></thead><tbody>';
+    for (const f of t.fields) out += `<tr><td class="dk">${esc(f.k)}</td><td class="dn">${esc(f.n)}</td><td class="dt">${esc(f.t)}</td><td class="dp">${linkRefs(f.p)}</td></tr>`;
+    out += '</tbody></table></div></article>';
+  }
+  out += '</div>';
+}
+document.getElementById('erd-toc').innerHTML = toc;
+document.getElementById('erd-model').innerHTML = out;
+
+function layoutAll() { drawEdges(); applyZoom(zoom); }
+const start = () => { layoutAll(); applyZoom(Math.max(0.6, Math.min(1, (vp.clientWidth - 4) / canvas.offsetWidth))); };
+if (document.fonts && document.fonts.ready) document.fonts.ready.then(start); else window.addEventListener('load', start);
+start();
+})();
+</script>
+
+<!-- =============== 5. BY FLOW =============== -->
+<div class="section-head" id="flows"><h2><span>5</span>Tables by flow</h2><p>Where each documented flow reads and writes</p></div>
+<p class="prose">Each table name jumps to its columns in §6.</p>
 <div class="flows"><table>
   <thead><tr><th>Flow</th><th>Writes</th><th>Reads</th></tr></thead>
   <tbody>
@@ -360,9 +933,9 @@ The rental tier itself (minimum 3 days, BC item number, status) is one row in <c
   </tbody>
 </table></div>
 
-<!-- =============== 4. REFERENCE =============== -->
+<!-- =============== 6. REFERENCE =============== -->
 <section id="reference">
-<div class="section-head"><h2><span>4</span>Column reference</h2><p>Grouped by module schema</p></div>
+<div class="section-head"><h2><span>6</span>Column reference</h2><p>Grouped by module schema</p></div>
 <p class="prose">Every table in the diagram, grouped by module schema. Types are Postgres types. Proposed types are a starting point for the migration, not a decision.</p>
 <ul class="toc" id="toc"></ul>
 <div id="ref"></div>
