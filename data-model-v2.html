@@ -362,6 +362,18 @@ tr.rvdel td.c, tr.rvdel td.ty{text-decoration:line-through;color:var(--rv-ink)}
 <tr><td class="c">product_erp_refs</td><td class="ty">MEG-5KV · SAGE100-US · sale</td><td>native_number from Sage 100</td></tr>
 </tbody></table></div>
 One SKU and one set of ERP numbers serve both brands. Each brand has its own slug, status and price list. Figures are illustrative.
+<br><br><b>Brand assignment from staging.</b> Data is only entered in the ERPs, so the brands that sell an item come in with the item. <code><a href="#t-staging-item-code">staging.item_code</a></code> gains <code>brand_codes</code>, a comma-separated list of brand codes that JMTS IT fills in the push, for example <code>JMTEST,VAETRIX,BRAND3</code>. erp-sync makes <code>brand_products</code> match the list on every push:
+<div class="table-scroll"><table>
+<thead><tr><th>brand_codes in the push</th><th>What erp-sync does</th></tr></thead><tbody>
+<tr><td class="ty">contains a code with no listing</td><td>Creates the listing: live, or draft while the ERP item is inactive</td></tr>
+<tr><td class="ty">no longer contains a code</td><td>Sets that listing to retired (kept for old orders and links)</td></tr>
+<tr><td class="ty">empty string</td><td>Item is synced but sold on no brand; listed on the items-with-no-brand report</td></tr>
+<tr><td class="ty">null (column not sent)</td><td>Leaves listings as they are, so a bad extract cannot retire the catalog</td></tr>
+<tr><td class="ty">unknown code, for example VAETIRX</td><td>Skipped and logged</td></tr>
+<tr><td class="ty">different lists on two warehouse rows</td><td>Logged as a mismatch; listings left as they are for that item</td></tr>
+<tr><td class="ty">same SKU from two ERP companies</td><td>Listing is the union of both lists</td></tr>
+</tbody></table></div>
+JMTS IT sends the full list on every push, not only changes. A safety limit stops the run if one push would retire more than a set number of listings. Open question for JMTS IT: items that exist only in Business Central arrive through the Custom API, not staging, so they need the same brand list on the BC side.
 <br><br><b>Also in this revision.</b> <code>commerce.carts</code>, <code>commerce.quotes</code> and <code>commerce.orders</code> (not drawn) gain <code>brand_id</code> and <code>country_code</code>, which the outbox uses to pick a destination. Cart, quote and order lines snapshot <code>price_list_id</code> next to <code>currency_code</code>. <code>product_availability</code> is unchanged: it describes stock and lead time per country, and a brand hides a product through <code>brand_products.status</code>.
 <br><br><b>Migration order.</b> Seed <code>brands</code> and <code>erp_companies</code>; apply points 3, 4 and 5 inside the jmtest.ca migration; then create <code>price_lists</code> and rekey the price tables (point 2); then create <code>brand_products</code> and move the brand-facing columns off <code>products</code> (point 1), before Vaetrix data lands on the shared tables.</div>
 
@@ -404,7 +416,7 @@ The rental tier itself (minimum 3 days, BC item number, status) is one row in <c
     </div>
   </div>
   <div class="fig-scroll" id="diagram"></div>
-  <figcaption>PK, FK and UQ mark primary keys, references and unique keys. References inside a module are drawn as column notes rather than lines. Across modules they are string ids with no database foreign key (CLAUDE.md §2). Hover a column for its note. <code>calibration_rules</code> is maintained by the calibration lab through a Studio view and <code>product_erp_refs</code> by the JMTS IT mapping, so neither has an inbound job arrow. <code>catalog.currencies</code> is reference data seeded by migration and maintained in Studio, so it has no inbound job arrow either; the same goes for <code>catalog.countries</code>. The same applies to <code>catalog.brands</code>, <code>catalog.erp_companies</code> and <code>catalog.price_lists</code> (seeded, then edited in Studio) and to <code>catalog.brand_products</code> (merchandising in Studio). Sage 100 and CalMapp are drawn as proposed: the model is ready for them, the jobs are not built yet.</figcaption>
+  <figcaption>PK, FK and UQ mark primary keys, references and unique keys. References inside a module are drawn as column notes rather than lines. Across modules they are string ids with no database foreign key (CLAUDE.md §2). Hover a column for its note. <code>calibration_rules</code> is maintained by the calibration lab through a Studio view and <code>product_erp_refs</code> by the JMTS IT mapping, so neither has an inbound job arrow. <code>catalog.currencies</code> is reference data seeded by migration and maintained in Studio, so it has no inbound job arrow either; the same goes for <code>catalog.countries</code>. The same applies to <code>catalog.brands</code>, <code>catalog.erp_companies</code> and <code>catalog.price_lists</code> (seeded by migration). <code>catalog.brand_products</code> is written by erp-sync from <code>staging.item_code.brand_codes</code>; its arrow is left out to keep the catalog column readable. Sage 100 and CalMapp are drawn as proposed: the model is ready for them, the jobs are not built yet.</figcaption>
 </figure>
 </section>
 
@@ -530,7 +542,7 @@ const TS = 'timestamptz';
 
 const MODULES = [
  { id: 'staging', title: 'Staging', blurb: 'Owned by JMTS IT. The storefront only reads it.', tables: [
-  { name: 'staging.item_code', purpose: 'Landing table for the item extract that JMTS IT pushes from the ERP. erp-sync reads new rows from here and turns them into catalog data.', fields: [
+  { name: 'staging.item_code', rv: 'chg', purpose: 'Landing table for the item extract that JMTS IT pushes from the ERP. erp-sync reads new rows from here and turns them into catalog data, including which brands sell each item (brand_codes).', fields: [
    F('id', 'bigint identity', 'PK', 'Unique id of the staged row.'),
    F('item_code', 'text', 'UQ', 'ERP item number. Matches a storefront SKU through catalog.product_erp_refs.'),
    F('item_code_desc', 'text', '', 'Item description as held in the ERP.'),
@@ -542,6 +554,7 @@ const MODULES = [
    F('suggested_retail', 'numeric(18,4)', '', 'ERP suggested retail price, in the currency given by currency_code.'),
    F('last_total_unit_cost', 'numeric(18,4)', '', 'Latest landed unit cost. For margin reporting, not shown to customers.'),
    F('currency_code', 'text', '', 'Currency of the three price fields above, so erp-sync writes the correct price row.'),
+   F('brand_codes', 'text null', '', 'Brands that sell the item, as comma-separated brand codes (catalog.brands), for example JMTEST,VAETRIX. erp-sync makes catalog.brand_products match this list. Empty means sold on no brand; null means leave listings as they are.', 'r'),
    F('quantity_on_hand', 'numeric(18,4)', '', 'Stock on hand in this warehouse. Null means unknown.'),
    F('warehouse_code', 'text', 'UQ', 'Warehouse the stock figure belongs to.'),
    F('item_status', 'text', '', 'Active or Inactive in the ERP.'),
@@ -583,11 +596,11 @@ const MODULES = [
    F('created_at', TS, '', 'When the row was created.'),
    F('updated_at', TS, '', 'When the row was last changed.'),
   ]},
-  { name: 'catalog.brand_products', rv: 'new', purpose: 'How each brand lists a product. One row per product per brand that sells it; no row means the brand does not sell it.', fields: [
+  { name: 'catalog.brand_products', rv: 'new', purpose: 'How each brand lists a product. One row per product per brand that sells it; no row means the brand does not sell it. Written by erp-sync from the brand codes in staging.item_code.', fields: [
    F('brand_id', 'varchar(32)', 'PK FK', 'Brand listing the product (catalog.brands).'),
    F('sku', 'varchar(64)', 'PK FK', 'Product listed (catalog.products).'),
    F('slug', 'varchar(128)', 'UQ', 'URL segment on this brand’s storefront. Unique with brand_id.'),
-   F('status', 'varchar(16)', '', 'Whether the product is live, draft or retired on this brand.'),
+   F('status', 'varchar(16)', '', 'Whether the product is live, draft or retired on this brand. Live while the brand code is in staging.item_code.brand_codes, retired once it is removed.'),
    F('category_id', 'varchar(64)', 'FK', 'Category on this brand’s storefront (catalog.categories).'),
    F('ribbon_tag', 'text', '', 'Short badge on this brand’s product tile, for example New or Best seller.'),
    F('live_on_legacy_site', 'boolean', '', 'Whether the product is still listed on this brand’s old site during migration.'),
@@ -898,6 +911,7 @@ const REL = [
   ['commerce.rma_requests', 'brand_id', 'catalog.brands', 'id', 1],
   ['commerce.integration_outbox', 'aggregate_id', 'commerce.rma_requests', 'id', 1],
   ['staging.item_code', 'item_code', 'catalog.product_erp_refs', 'native_number', 1],
+  ['staging.item_code', 'brand_codes', 'catalog.brands', 'id', 1],
 ];
 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
@@ -1039,7 +1053,7 @@ start();
 <div class="flows"><table>
   <thead><tr><th>Flow</th><th>Writes</th><th>Reads</th></tr></thead>
   <tbody>
-    <tr><td><a href="catalog.html">Catalog</a></td><td><code><a href="#t-products">catalog.products</a></code>, <code><a href="#t-product-prices">catalog.product_prices</a></code>, <code><a href="#t-availability">catalog.product_availability</a></code>, <code><a href="#t-rental-rates">catalog.product_rental_rates</a></code>, <code><a href="#t-rental-prices">catalog.product_rental_prices</a></code>, <code><a href="#t-cal-services">catalog.calibration_services</a></code>, <code><a href="#t-cal-service-prices">catalog.calibration_prices</a></code></td><td><code><a href="#t-staging-item-code">staging.item_code</a></code>, <code><a href="#t-erp-refs">catalog.product_erp_refs</a></code>, <code><a href="#t-erp-companies">catalog.erp_companies</a></code>, <code><a href="#t-price-lists">catalog.price_lists</a></code>, <code><a href="#t-currencies">catalog.currencies</a></code>, <code><a href="#t-countries">catalog.countries</a></code>, <code><a href="#t-brands">catalog.brands</a></code>, <code><a href="#t-brand-products">catalog.brand_products</a></code></td></tr>
+    <tr><td><a href="catalog.html">Catalog</a></td><td><code><a href="#t-products">catalog.products</a></code>, <code><a href="#t-brand-products">catalog.brand_products</a></code>, <code><a href="#t-product-prices">catalog.product_prices</a></code>, <code><a href="#t-availability">catalog.product_availability</a></code>, <code><a href="#t-rental-rates">catalog.product_rental_rates</a></code>, <code><a href="#t-rental-prices">catalog.product_rental_prices</a></code>, <code><a href="#t-cal-services">catalog.calibration_services</a></code>, <code><a href="#t-cal-service-prices">catalog.calibration_prices</a></code></td><td><code><a href="#t-staging-item-code">staging.item_code</a></code>, <code><a href="#t-erp-refs">catalog.product_erp_refs</a></code>, <code><a href="#t-erp-companies">catalog.erp_companies</a></code>, <code><a href="#t-price-lists">catalog.price_lists</a></code>, <code><a href="#t-currencies">catalog.currencies</a></code>, <code><a href="#t-countries">catalog.countries</a></code>, <code><a href="#t-brands">catalog.brands</a></code>, <code><a href="#t-brand-products">catalog.brand_products</a></code></td></tr>
     <tr><td><a href="sales-quote-creation-flow.html">Sales quote creation</a></td><td><code><a href="#t-quote-items">commerce.quote_items</a></code>, <code><a href="#t-outbox">commerce.integration_outbox</a></code></td><td><code><a href="#t-erp-refs">catalog.product_erp_refs</a></code>, <code><a href="#t-erp-companies">catalog.erp_companies</a></code>, <code><a href="#t-price-lists">catalog.price_lists</a></code>, <code><a href="#t-product-prices">catalog.product_prices</a></code>, <code><a href="#t-brand-products">catalog.brand_products</a></code></td></tr>
     <tr><td><a href="orders.html">Orders</a></td><td><code><a href="#t-cart-items">commerce.cart_items</a></code>, <code><a href="#t-order-items">commerce.order_items</a></code>, <code><a href="#t-outbox">commerce.integration_outbox</a></code></td><td><code><a href="#t-price-lists">catalog.price_lists</a></code>, <code><a href="#t-product-prices">catalog.product_prices</a></code>, <code><a href="#t-brand-products">catalog.brand_products</a></code>, <code><a href="#t-availability">catalog.product_availability</a></code>, <code><a href="#t-erp-refs">catalog.product_erp_refs</a></code>, <code><a href="#t-erp-companies">catalog.erp_companies</a></code>, <code><a href="#t-cal-service-prices">catalog.calibration_prices</a></code></td></tr>
     <tr><td><a href="rental-items.html">Rental items</a></td><td>Rental request (proposed in the flow, not in this model yet), <code><a href="#t-outbox">commerce.integration_outbox</a></code></td><td><code><a href="#t-availability">catalog.product_availability</a></code>, <code><a href="#t-rental-rates">catalog.product_rental_rates</a></code>, <code><a href="#t-rental-prices">catalog.product_rental_prices</a></code>, <code><a href="#t-price-lists">catalog.price_lists</a></code>, <code><a href="#t-erp-refs">catalog.product_erp_refs</a></code>, <code><a href="#t-erp-companies">catalog.erp_companies</a></code></td></tr>
@@ -1076,9 +1090,9 @@ const ADDED_LINE_COLS = (self) => [
 
 const T = {
   staging_item_code: {
-    name: 'staging.item_code', kind: 'same', mod: 'staging',
+    name: 'staging.item_code', kind: 'chg', mod: 'staging',
     sub: 'pushed by JMTS IT, read by erp-sync',
-    desc: 'Landing table for the ERP item extract. Same push contract as Vaetrix (docs/infra/staging-item-code.sql). Unique on (item_code, warehouse_code, load_batch_id).',
+    desc: 'Landing table for the ERP item extract. Same push contract as Vaetrix (docs/infra/staging-item-code.sql), plus brand_codes (IT review). Unique on (item_code, warehouse_code, load_batch_id). brand_codes repeats on every warehouse row of an item and must be the same on each.',
     fields: [
       f('id', 'bigint identity', 'PK'),
       f('item_code', 'text', 'UQ', 'ItemCode. Part of the unique key.', 'k'),
@@ -1091,6 +1105,7 @@ const T = {
       f('suggested_retail', 'numeric(18,4)', '', 'SuggestedRetailPrice'),
       f('last_total_unit_cost', 'numeric(18,4)', '', 'LastTotalUnitCost'),
       f('currency_code', 'text', '', "Multi-currency revision, proposed addition to the push contract (JMTS IT to confirm). Currency of standard_price, suggested_retail and last_total_unit_cost, so erp-sync writes the right product_prices row instead of assuming one.", '+g'),
+      f('brand_codes', 'text null', '', 'IT review. Brands that sell the item, as brand codes from catalog.brands separated by commas, for example \'JMTEST,VAETRIX,BRAND3\'. Proposed addition to the push contract (JMTS IT to confirm). erp-sync makes catalog.brand_products match this list. Null means do not change listings; an empty string means sold on no brand.', 'r'),
       f('quantity_on_hand', 'numeric(18,4)', '', 'Per warehouse. Null means unknown.'),
       f('warehouse_code', 'text', 'UQ', 'Part of the unique key.', 'k'),
       f('item_status', 'text', '', 'Active / Inactive'),
@@ -1158,13 +1173,13 @@ const T = {
   },
   brand_products: {
     name: 'catalog.brand_products', kind: 'new', rv: true, mod: 'catalog',
-    sub: 'merchandising in Studio, read by apps/web',
-    desc: 'IT review, point 1. How each brand lists a product. Keyed (brand_id, sku), so two brands can sell the same SKU, each with its own slug, status, category and badge. No row means the brand does not sell the product. One SKU keeps one set of ERP numbers.',
+    sub: 'written by erp-sync from staging.item_code.brand_codes',
+    desc: 'IT review, point 1. How each brand lists a product. Keyed (brand_id, sku), so two brands can sell the same SKU, each with its own slug, status, category and badge. Written by erp-sync only: a brand code in staging.item_code.brand_codes creates or keeps the listing live; a code dropped from the list sets it to retired (never deleted, so old orders and links still resolve); unknown codes are logged and skipped. When the same SKU arrives from two ERP companies, the listing is the union of both lists. One SKU keeps one set of ERP numbers.',
     fields: [
       f('brand_id', 'varchar(32)', 'PK FK', '→ catalog.brands.id'),
       f('sku', 'varchar(64)', 'PK FK', '→ catalog.products.sku'),
       f('slug', 'varchar(128)', 'UQ', 'Unique with brand_id. Moved from catalog.products.'),
-      f('status', 'varchar(16)', '', "'live' | 'draft' | 'retired' on this brand. Moved from catalog.products."),
+      f('status', 'varchar(16)', '', "'live' | 'draft' | 'retired' on this brand. Set by erp-sync from brand_codes; draft while the ERP item is inactive. Moved from catalog.products."),
       f('category_id', 'varchar(64)', 'FK', '→ catalog.categories.id. Moved from catalog.products.'),
       f('ribbon_tag', 'text', '', 'Moved from catalog.products.'),
       f('live_on_legacy_site', 'boolean', '', 'Moved from catalog.products.'),
@@ -1608,11 +1623,11 @@ function render(mode) {
   s += `<text class="g" x="${GX + 12}" y="${GY + 20}">POSTGRES · ONE DATABASE · SCHEMA PER MODULE</text>`;
 
   // Left column: external systems
-  s += node('', 20, hy('staging_item_code') - 26, 220, 52, 'ERP item extract', ['JMTS IT push, unchanged']);
+  s += node('chg', 20, hy('staging_item_code') - 26, 220, 52, 'ERP item extract', ['JMTS IT push, + brand_codes']);
   s += node('chg', 20, bcY, 220, 122, 'Business Central (CA)', ['CAD price, CA availability', '+ rental items and rates', '+ calibration service items', '+ Sales Quote API']);
   s += node('chg', 20, jobY, 220, 52, 'JMTest CRM', ['+ RMA case via CRM API']);
   // Middle column: jobs
-  s += node('chg', 280, erpY, 190, 126, 'jobs/erp-sync', ['+ brand jmtest, BC required', '+ rentals, calibration prices', '+ prices per price list', '+ one availability row', '  per product per country']);
+  s += node('chg', 280, erpY, 190, 144, 'jobs/erp-sync', ['+ brand jmtest, BC required', '+ rentals, calibration prices', '+ prices per price list', '+ one availability row', '  per product per country', '+ brand listings from brand_codes']);
   s += node('new', 280, jobY, 190, 52, 'jobs/integration-outbox', ['one call per destination']);
   const sageY = bcY + 168;
   s += node('new', 20, sageY, 220, 52, 'Sage 100 + CalMapp (US)', ['proposed, via erp_companies']);
