@@ -82,7 +82,7 @@ footer{margin-top:64px;border-top:1px solid var(--line);padding-top:16px;color:v
   <a class="logo" href="index.html"><b>JMtest</b>Integration docs</a>
   <nav aria-label="Sections">
     <a href="#docs">Flows</a>
-    <a href="data-model.html">Data model</a>
+    <a href="data-model-v2.html">Data model</a>
     <a href="#notes">Conventions</a>
   </nav>
 </div>
@@ -139,10 +139,19 @@ footer{margin-top:64px;border-top:1px solid var(--line);padding-top:16px;color:v
    Set status: "soon" for a placeholder card with no link. */
 const docs = [
   {
-    title: "Data model",
+    title: "Data model v2",
     area: "Reference",
     system: "Postgres · all modules",
-    description: "Every table the flows read and write, with all columns, keys and what is proposed. Includes the 2026-11-19 currency and country revision.",
+    description: "Current version. Every table the flows read and write, with the 2026-11-24 revision applying the fixes from the IT manager's review.",
+    href: "data-model-v2.html",
+    updated: "2026-11-24",
+    status: "live"
+  },
+  {
+    title: "Data model v1",
+    area: "Reference",
+    system: "Postgres · all modules",
+    description: "Previous version, kept for comparison. Includes the 2026-11-19 currency and country revision.",
     href: "data-model.html",
     updated: "2026-11-20",
     status: "live"
